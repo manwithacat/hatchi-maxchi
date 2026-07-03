@@ -1,0 +1,1054 @@
+/* =============================================================================
+   DAZZLE Design System (app-shell layer)
+
+   Non-colour design tokens (type/space/radius/shadow/motion + --dz-*
+   site tokens) and app-shell component overrides. All colour comes
+   from the HaTchi-MaXchi OKLCH semantic tokens (--colour-*,
+   packages/hatchi-maxchi/tokens/tokens.css) — the legacy shadcn-era
+   HSL token system was removed in the Stage 2b fossil migration.
+
+   Sections:
+   1. Design Tokens (CSS custom properties)
+   2. (removed — DaisyUI theme bridge, #1113)
+   3. Typography
+   4. Global Refinements
+   5. Component Overrides
+   6. Loading States & Animations
+   7. Responsive Refinements
+   ============================================================================= */
+
+/* =============================================================================
+   1. Design Tokens — Light Mode (default)
+
+   Colour comes from the HaTchi-MaXchi OKLCH semantic tokens
+   (--colour-*, tokens/tokens.css). The legacy shadcn-era HSL token
+   block (--background/--foreground/--primary/…) was removed in the
+   Stage 2b fossil migration — every consumer now references the
+   semantic tokens directly, and light/dark switching is handled by
+   light-dark() in tokens.css (no per-scheme block needed here).
+   ============================================================================= */
+
+:root {
+  /* --- Typography --- */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
+
+  /* --- Spacing scale --- */
+  --space-0: 0;
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* --- Border radius --- */
+  --radius-sm: 0.25rem;
+  --radius: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* --- Shadows (zinc-tinted) --- */
+  --shadow-xs: 0 1px 2px 0 hsl(240 5.9% 10% / 0.03);
+  --shadow-sm: 0 1px 3px 0 hsl(240 5.9% 10% / 0.06), 0 1px 2px -1px hsl(240 5.9% 10% / 0.06);
+  --shadow-md: 0 4px 6px -1px hsl(240 5.9% 10% / 0.07), 0 2px 4px -2px hsl(240 5.9% 10% / 0.05);
+  --shadow-lg: 0 10px 15px -3px hsl(240 5.9% 10% / 0.07), 0 4px 6px -4px hsl(240 5.9% 10% / 0.05);
+  --shadow-xl: 0 20px 25px -5px hsl(240 5.9% 10% / 0.08), 0 8px 10px -6px hsl(240 5.9% 10% / 0.05);
+
+  /* --- Transitions --- */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* --- Legacy --dz-* tokens (backward compat) --- */
+  --dz-shadow-sm: var(--shadow-sm);
+  --dz-shadow-card: var(--shadow-sm);
+  --dz-shadow-md: var(--shadow-md);
+  --dz-shadow-lg: var(--shadow-lg);
+  --dz-transition-fast: var(--duration-fast);
+  --dz-transition-normal: var(--duration-normal);
+  --dz-accent-glow: color-mix(in oklab, var(--colour-brand) 15%, transparent);
+
+  /* --- Site section tokens (marketing pages) --- */
+
+  /* Hero gradient — overridden by ThemeSpec when a custom palette is set */
+  --dz-hero-bg-from: oklch(0.45 0.18 265);
+  --dz-hero-bg-to: oklch(0.38 0.20 280);
+  --dz-shadow-hero: 0 20px 60px -12px oklch(0 0 0 / 0.25);
+  --dz-shadow-xl: var(--shadow-xl);
+
+  /* Text hierarchy (oklch neutrals) */
+  --dz-text-foreground: oklch(0.15 0 0);
+  --dz-text-emphasis: oklch(0.35 0 0);
+  --dz-text-body: oklch(0.45 0 0);
+  --dz-text-muted: oklch(0.5 0 0);
+
+  /* Surfaces */
+  --dz-surface-card: white;
+  --dz-feature-icon-bg: oklch(0.92 0.03 260);
+  --dz-section-alt-bg: oklch(0.97 0.01 260);
+  --dz-pricing-highlight-bg: oklch(0.45 0.18 270);
+
+  /* Borders (transparent black) */
+  --dz-border-default: oklch(0 0 0 / 0.1);
+  --dz-border-subtle: oklch(0 0 0 / 0.08);
+  --dz-border-input: oklch(0 0 0 / 0.15);
+
+  /* Hero overlays (transparent white, for dark backgrounds) */
+  --dz-hero-overlay: oklch(1 0 0 / 0.1);
+  --dz-hero-border: oklch(1 0 0 / 0.5);
+  --dz-hero-border-hover: oklch(1 0 0 / 0.7);
+  --dz-hero-text-dimmed: oklch(1 0 0 / 0.8);
+  --dz-hero-border-dim: oklch(1 0 0 / 0.15);
+  --dz-hero-btn-hover: oklch(0.98 0 0);
+
+  /* Header */
+  --dz-header-bg: oklch(1 0 0 / 0.95);
+
+  /* Footer */
+  --dz-footer-bg: oklch(0.15 0.01 260);
+  --dz-footer-text: oklch(0.7 0 0);
+  --dz-footer-link: oklch(0.6 0 0);
+  --dz-footer-border: oklch(1 0 0 / 0.1);
+  --dz-footer-heading: oklch(1 0 0);
+
+  /* Logo */
+  --dz-logo-color: oklch(0.25 0.02 260);
+
+  /* Error feedback */
+  --dz-error-bg: oklch(0.95 0.03 25);
+  --dz-error-text: oklch(0.45 0.15 25);
+
+  /* Focus ring */
+  --dz-ring-glow: 0 0 0 3px oklch(0.50 0.18 270 / 0.15);
+
+  /* Section spacing */
+  --dz-spacing-hero-y: 6rem;
+  --dz-spacing-section-y: 5rem;
+  --dz-spacing-feature-gap: 2rem;
+  --dz-spacing-card-padding: 1.5rem;
+
+  /* Fluid typography — clamp() for responsive sizing without breakpoints */
+  --dz-font-size-fluid-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --dz-font-size-fluid-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --dz-font-size-fluid-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --dz-font-size-fluid-lg: clamp(1.125rem, 1rem + 0.625vw, 1.375rem);
+  --dz-font-size-fluid-xl: clamp(1.25rem, 1rem + 1.25vw, 1.75rem);
+  --dz-font-size-fluid-2xl: clamp(1.5rem, 1.1rem + 2vw, 2.25rem);
+  --dz-font-size-fluid-3xl: clamp(1.875rem, 1.3rem + 2.875vw, 3rem);
+
+  /* Typography — hero */
+  --dz-font-size-hero-headline: clamp(2.25rem, 1.5rem + 3.75vw, 3.5rem);
+  --dz-font-weight-hero-headline: 800;
+  --dz-line-height-hero-headline: 1.1;
+  --dz-letter-spacing-hero-headline: -0.02em;
+  --dz-font-size-subhead: 1.25rem;
+  --dz-line-height-subhead: 1.5;
+
+  /* Typography — CTA (#983). Pre-tokenisation, site-sections.css
+   * inlined the 3rem fallback. Defining it here keeps the marketing
+   * heading scale discoverable in one place. */
+  --dz-font-size-cta-headline: 3rem;
+
+  /* Typography — sections */
+  --dz-font-size-section-headline: 2.25rem;
+  --dz-font-weight-section-headline: 700;
+  --dz-line-height-section-headline: 1.2;
+  --dz-letter-spacing-section-headline: -0.01em;
+  --dz-font-size-body: 1rem;
+  --dz-line-height-body: 1.6;
+
+  /* Radii */
+  --dz-radius-button: 0.5rem;
+  --dz-radius-card: 0.75rem;
+  --dz-radius-lg: 1rem;
+  --dz-radius-sm: 0.375rem;
+}
+
+/* =============================================================================
+   1b. Dark Mode Tokens
+   ============================================================================= */
+
+.dark,
+[data-theme="dark"] {
+  --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
+  --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.25), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
+  --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
+
+  --dz-sidebar-from: hsl(240 10% 5%);
+  --dz-sidebar-to: hsl(240 10% 8%);
+  --dz-accent-glow: color-mix(in oklab, var(--colour-brand) 20%, transparent);
+
+  /* Site section overrides for dark mode */
+  --dz-section-alt-bg: oklch(0.08 0.01 260);
+  --dz-feature-icon-bg: oklch(0.20 0.04 260);
+
+  /* Text hierarchy */
+  --dz-text-foreground: oklch(0.95 0 0);
+  --dz-text-emphasis: oklch(0.85 0 0);
+  --dz-text-body: oklch(0.70 0 0);
+  --dz-text-muted: oklch(0.55 0 0);
+
+  /* Surfaces */
+  --dz-surface-card: oklch(0.18 0.01 260);
+
+  /* Borders */
+  --dz-border-default: oklch(1 0 0 / 0.12);
+  --dz-border-subtle: oklch(1 0 0 / 0.08);
+  --dz-border-input: oklch(1 0 0 / 0.15);
+
+  /* Header / Footer */
+  --dz-header-bg: oklch(0.15 0.01 260 / 0.95);
+  --dz-footer-bg: oklch(0.08 0.01 260);
+  --dz-footer-text: oklch(0.65 0 0);
+  --dz-footer-link: oklch(0.55 0 0);
+  --dz-footer-border: oklch(1 0 0 / 0.1);
+  --dz-footer-heading: oklch(1 0 0);
+
+  /* Logo */
+  --dz-logo-color: oklch(0.95 0 0);
+
+  /* Error feedback */
+  --dz-error-bg: oklch(0.20 0.06 25);
+  --dz-error-text: oklch(0.80 0.15 25);
+
+  /* Focus ring */
+  --dz-ring-glow: 0 0 0 3px oklch(0.60 0.18 270 / 0.15);
+}
+
+/* No-JS / pre-paint parity (#tranche2): the shadow + --dz-* site
+   tokens must follow prefers-color-scheme like the OKLCH set does,
+   otherwise consumers render light values on dark until theme JS
+   sets [data-theme]. Mirrors the tokens.css fallback. (The legacy
+   HSL colour tokens this block also carried were removed in the
+   Stage 2b fossil migration — light-dark() in tokens.css covers
+   the --colour-* set natively.) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
+  --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+  --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
+  --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.25), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
+  --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
+
+  --dz-sidebar-from: hsl(240 10% 5%);
+  --dz-sidebar-to: hsl(240 10% 8%);
+  --dz-accent-glow: color-mix(in oklab, var(--colour-brand) 20%, transparent);
+
+  /* Site section overrides for dark mode */
+  --dz-section-alt-bg: oklch(0.08 0.01 260);
+  --dz-feature-icon-bg: oklch(0.20 0.04 260);
+
+  /* Text hierarchy */
+  --dz-text-foreground: oklch(0.95 0 0);
+  --dz-text-emphasis: oklch(0.85 0 0);
+  --dz-text-body: oklch(0.70 0 0);
+  --dz-text-muted: oklch(0.55 0 0);
+
+  /* Surfaces */
+  --dz-surface-card: oklch(0.18 0.01 260);
+
+  /* Borders */
+  --dz-border-default: oklch(1 0 0 / 0.12);
+  --dz-border-subtle: oklch(1 0 0 / 0.08);
+  --dz-border-input: oklch(1 0 0 / 0.15);
+
+  /* Header / Footer */
+  --dz-header-bg: oklch(0.15 0.01 260 / 0.95);
+  --dz-footer-bg: oklch(0.08 0.01 260);
+  --dz-footer-text: oklch(0.65 0 0);
+  --dz-footer-link: oklch(0.55 0 0);
+  --dz-footer-border: oklch(1 0 0 / 0.1);
+  --dz-footer-heading: oklch(1 0 0);
+
+  /* Logo */
+  --dz-logo-color: oklch(0.95 0 0);
+
+  /* Error feedback */
+  --dz-error-bg: oklch(0.20 0.06 25);
+  --dz-error-text: oklch(0.80 0.15 25);
+
+  /* Focus ring */
+  --dz-ring-glow: 0 0 0 3px oklch(0.60 0.18 270 / 0.15);
+  }
+}
+
+
+/* =============================================================================
+   2. (DaisyUI theme bridge removed in #1113.)
+
+   This block previously mapped our design tokens to DaisyUI's internal
+   --b1/--b2/--p/--s/etc. variables. DaisyUI is no longer loaded — the
+   CDN tags were dropped from `site_renderer.get_shared_head_html` in
+   the same release — so those variable mappings became dead weight.
+   Any selector below that uses `bg-base-100` etc. as a class name is
+   now styled by our own rules (drawer-side block in section 5), not
+   by DaisyUI's component CSS.
+   ============================================================================= */
+
+/* =============================================================================
+   3. Typography
+   ============================================================================= */
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--colour-text);
+  background-color: var(--colour-bg);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+}
+
+/* =============================================================================
+   4. Global Refinements
+   ============================================================================= */
+
+/* Smooth transitions on interactive elements */
+a, button, .btn, input, select, textarea, .card, .menu li a {
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+/* Focus visibility — universal net, same ring vocabulary as the
+   HaTchi-MaXchi per-element rules in base.css (TASTE-1). */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove default focus outline — rely on :focus-visible only */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  :root {
+    --colour-border: light-dark(var(--neutral-600), var(--neutral-400));
+    --colour-text-muted: light-dark(var(--neutral-700), var(--neutral-300));
+  }
+  .btn {
+    border: 2px solid currentColor;
+  }
+  .badge {
+    border: 1px solid currentColor;
+  }
+  .card {
+    border-width: 2px;
+  }
+  .input,
+  .select,
+  .textarea {
+    border-width: 2px;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =============================================================================
+   5. Component Overrides
+   ============================================================================= */
+
+/* --- Sidebar --- */
+
+.drawer-side aside,
+.drawer-side > aside.bg-base-200,
+.drawer-side > aside.bg-base-100 {
+  background: var(--colour-surface);
+  border-inline-end: 1px solid var(--colour-border);
+}
+
+.drawer-side aside > div:first-child {
+  border-block-end-color: var(--colour-border);
+}
+
+.drawer-side aside > div:first-child a {
+  color: var(--colour-text);
+  letter-spacing: -0.01em;
+}
+
+.drawer-side .menu a {
+  color: var(--colour-text-muted);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.drawer-side .menu a:hover {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+}
+
+.drawer-side .menu a.active {
+  background: var(--colour-brand);
+  color: var(--colour-brand-contrast);
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.drawer-side aside > div:last-child {
+  border-block-start-color: var(--colour-border);
+}
+
+/* --- Navbar --- */
+
+.navbar {
+  backdrop-filter: blur(8px);
+  background: color-mix(in oklab, var(--colour-bg) 85%, transparent);
+  border-block-end: 1px solid var(--colour-border);
+}
+
+.navbar .text-xl {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* --- Cards --- */
+
+.card {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  transition: box-shadow var(--duration-normal) var(--ease-default),
+              transform var(--duration-normal) var(--ease-default);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card[onclick]:hover,
+.card a:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Legacy DaisyUI shim classes (.card-body, .btn, .btn-primary, .btn-ghost,
+   .btn-outline, .btn-error, .input, .select, .textarea, .label-text,
+   .table, .table thead th, .table tbody td) removed in v0.56.0.
+   All components now use the OKLCH semantic tokens (var(--colour-*)).
+   See the component contracts at ~/.claude/skills/ux-architect/components/. */
+
+/* --- Modal/Dialog (kept — used by the native <dialog> modal component) --- */
+
+.modal-box {
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface);
+}
+
+.modal-backdrop {
+  background: color-mix(in oklab, var(--colour-text) 50%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+/* Legacy DaisyUI shim classes removed in v0.56.0:
+   .badge, .badge-primary, .badge-success, .badge-warning, .badge-error,
+   .badge-info, .badge-ghost, .stats, .stat, .stat-title, .stat-value,
+   .stat-desc, .alert, .alert-info, .alert-success, .alert-warning,
+   .alert-error — all replaced by inline Tailwind with design-system
+   tokens. See macros/status_badge.html and the component contracts. */
+
+/* --- Page Header --- */
+
+.dz-page-header {
+  margin-block-end: 1.5rem;
+}
+
+.dz-page-header h1,
+.dz-page-header .text-2xl {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--colour-text);
+}
+
+.dz-page-header .text-sm {
+  color: var(--colour-text-muted);
+}
+
+/* --- Empty State --- */
+
+.dz-empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--colour-text-muted); /* was var(--colour-text-muted) fossil */
+}
+
+.dz-empty-state svg {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  opacity: 0.4;
+}
+
+/* --- Action Bar --- */
+
+.dz-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-block-end: 1rem;
+  gap: 1rem;
+}
+
+.dz-action-bar .btn {
+  gap: 0.5rem;
+}
+
+/* --- Dropdown menus --- */
+
+.menu.shadow {
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  background: var(--colour-surface);
+  color: var(--colour-text);
+}
+
+/* =============================================================================
+   6. Loading States & Animations
+   ============================================================================= */
+
+.loading {
+  color: var(--colour-brand);
+}
+
+/* Skeleton shimmer */
+.skeleton,
+.dz-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--colour-surface-muted) 25%,
+    color-mix(in oklab, var(--colour-surface-muted) 60%, transparent) 50%,
+    var(--colour-surface-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Spinner for HTMX loading */
+.dz-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--colour-surface-muted);
+  border-top-color: var(--colour-brand);
+  border-radius: 50%;
+  animation: dz-spin 0.6s linear infinite;
+}
+
+.dz-spinner--sm {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-width: 1.5px;
+}
+
+@keyframes dz-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* HTMX indicator visibility — moved to dz.css (loaded on all pages) */
+.htmx-request .htmx-hide-on-request {
+  display: none;
+}
+
+/* Toast slide-in */
+.toast .alert {
+  animation: dz-toast-in var(--duration-slow) var(--ease-out);
+}
+
+@keyframes dz-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* =============================================================================
+   7. Responsive Refinements
+   ============================================================================= */
+
+/* Responsive refinements for DaisyUI .card-body / .table / .stat removed
+   in v0.56.0 — components now use inline Tailwind with responsive prefixes. */
+
+/* =============================================================================
+   8. Container Queries
+   ============================================================================= */
+
+/* Table container — enable container queries for responsive stacking */
+.overflow-x-auto[role="region"] {
+  container-type: inline-size;
+  container-name: table-container;
+}
+
+/* Stack table on narrow containers */
+@container table-container (max-width: 480px) {
+  .table thead {
+    display: none;
+  }
+  .table tbody tr {
+    display: block;
+    margin-block-end: 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+  }
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding-block: 0.25rem;
+    padding-inline: 0.5rem;
+    border-block-end: none;
+  }
+  .table tbody td::before {
+    content: attr(data-label);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--colour-text-muted);
+  }
+}
+
+/* ── Tom Select token overrides (UX-009 widget:combobox) ───────────────── */
+/* Linear-aesthetic override of vendor/tom-select.css. Targets the library's  */
+/* generated class names to align with the --colour-* semantic tokens.        */
+.ts-wrapper.single .ts-control,
+.ts-wrapper.multi .ts-control {
+  background: var(--colour-bg);
+  border: 1px solid var(--colour-border);
+  border-radius: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--colour-text);
+  box-shadow: none;
+  transition: box-shadow 120ms cubic-bezier(0.2, 0, 0, 1),
+              border-color 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ts-wrapper.single.focus .ts-control,
+.ts-wrapper.multi.focus .ts-control {
+  border-color: var(--colour-brand);
+  box-shadow: 0 0 0 1px var(--colour-brand);
+}
+.ts-wrapper.single.disabled .ts-control,
+.ts-wrapper.multi.disabled .ts-control {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ts-wrapper .ts-control > input::placeholder,
+.ts-wrapper .ts-control .placeholder {
+  color: var(--colour-text-muted);
+}
+.ts-dropdown {
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  color: var(--colour-text);
+  margin-top: 4px;
+  font-size: 13px;
+}
+.ts-dropdown .option {
+  padding: 6px 12px;
+  color: var(--colour-text);
+}
+.ts-dropdown .active {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+}
+.ts-dropdown .selected {
+  background: color-mix(in oklab, var(--colour-brand) 10%, transparent);
+  color: var(--colour-brand);
+}
+.ts-dropdown .no-results {
+  padding: 8px 12px;
+  color: var(--colour-text-muted);
+  font-style: italic;
+}
+/* Error state — mirrors aria-invalid on the underlying <select> */
+.ts-wrapper[aria-invalid="true"] .ts-control,
+select[aria-invalid="true"] + .ts-wrapper .ts-control {
+  border-color: var(--colour-danger);
+}
+/* Multi-select pills (used by multiselect/tags — out of scope for UX-009 but */
+/* included so the other widgets inherit the tokens without extra work).       */
+.ts-wrapper.multi .ts-control > .item {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+  border: 1px solid var(--colour-border);
+  border-radius: 3px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+/* ── Flatpickr token overrides (UX-010 widget:datepicker) ──────────────── */
+/* Linear-aesthetic override of vendor/flatpickr.css. Targets the library's  */
+/* generated class names to align with the --colour-* semantic tokens.       */
+.flatpickr-calendar {
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  color: var(--colour-text);
+  font-size: 13px;
+  margin-top: 4px;
+  width: auto;
+}
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after,
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after {
+  border-bottom-color: var(--colour-surface);
+  border-top-color: var(--colour-surface);
+}
+.flatpickr-months {
+  padding: 8px 8px 4px;
+}
+.flatpickr-month {
+  background: transparent;
+  color: var(--colour-text);
+  height: 32px;
+}
+.flatpickr-current-month {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--colour-text);
+  padding: 4px 0;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  background: transparent;
+  color: var(--colour-text);
+  font-weight: 500;
+}
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  color: var(--colour-text-muted);
+  fill: var(--colour-text-muted);
+  padding: 4px 8px;
+  transition: color 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+  color: var(--colour-text);
+  fill: var(--colour-text);
+}
+.flatpickr-weekdays {
+  background: transparent;
+}
+.flatpickr-weekday {
+  background: transparent;
+  color: var(--colour-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.flatpickr-days {
+  padding: 4px;
+}
+.dayContainer {
+  padding: 0;
+  min-width: auto;
+}
+.flatpickr-day {
+  color: var(--colour-text);
+  border: 0;
+  border-radius: 3px;
+  max-width: 36px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+  transition: background-color 80ms cubic-bezier(0.2, 0, 0, 1),
+              color 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+}
+.flatpickr-day.today {
+  border: 1px solid var(--colour-brand);
+  background: transparent;
+  color: var(--colour-text);
+}
+.flatpickr-day.today:hover {
+  background: var(--colour-surface-muted);
+  border-color: var(--colour-brand);
+}
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: var(--colour-brand);
+  color: var(--colour-brand-contrast);
+  border-color: var(--colour-brand);
+}
+.flatpickr-day.inRange,
+.flatpickr-day.inRange:hover {
+  background: color-mix(in oklab, var(--colour-brand) 10%, transparent);
+  color: var(--colour-text);
+  box-shadow: none;
+  border-color: transparent;
+}
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: var(--colour-text-muted);
+  opacity: 0.5;
+}
+.flatpickr-day.flatpickr-disabled:hover {
+  background: transparent;
+}
+/* Error state — underlying input border already set via Tailwind conditional */
+input[aria-invalid="true"][data-dz-widget="datepicker"],
+input[aria-invalid="true"][data-dz-widget="daterange"] {
+  border-color: var(--colour-danger);
+}
+
+/* ── Range slider token overrides (UX-023 widget:slider) ──────────────── */
+/* Scoped to input[type="range"][data-dz-slider] so generic ranges elsewhere */
+/* keep their browser-default appearance.                                    */
+input[type="range"][data-dz-slider] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 16px; /* enough room for the thumb */
+  padding: 0;
+}
+input[type="range"][data-dz-slider]:focus { outline: none; }
+
+/* Track — WebKit / Blink */
+input[type="range"][data-dz-slider]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--colour-surface-muted);
+  border-radius: 2px;
+  border: 0;
+}
+/* Track — Gecko */
+input[type="range"][data-dz-slider]::-moz-range-track {
+  height: 4px;
+  background: var(--colour-surface-muted);
+  border-radius: 2px;
+  border: 0;
+}
+
+/* Thumb — WebKit / Blink */
+input[type="range"][data-dz-slider]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--colour-brand);
+  border: 0;
+  cursor: pointer;
+  margin-top: -6px; /* (thumb - track) / 2 = (16 - 4) / 2 = 6 */
+  transition: filter 80ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+input[type="range"][data-dz-slider]::-webkit-slider-thumb:hover {
+  filter: brightness(1.05);
+}
+input[type="range"][data-dz-slider]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px var(--focus-ring-color);
+}
+
+/* Thumb — Gecko */
+input[type="range"][data-dz-slider]::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--colour-brand);
+  border: 0;
+  cursor: pointer;
+  transition: filter 80ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+input[type="range"][data-dz-slider]::-moz-range-thumb:hover {
+  filter: brightness(1.05);
+}
+input[type="range"][data-dz-slider]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 2px var(--focus-ring-color);
+}
+
+input[type="range"][data-dz-slider]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Pickr token overrides (UX-024 widget:colorpicker) ────────────────── */
+/* Linear-aesthetic override of vendor/pickr.css (nano theme). Scoped to   */
+/* .pcr-app so the rules don't leak into non-Pickr elements.                */
+.pcr-app {
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  border: 1px solid var(--colour-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08), 0 1px 3px rgb(0 0 0 / 0.06);
+  font-family: inherit;
+  padding: 12px;
+}
+.pcr-app .pcr-selection .pcr-color-preview {
+  border-radius: 3px;
+  border: 1px solid var(--colour-border);
+}
+.pcr-app .pcr-selection .pcr-color-chooser,
+.pcr-app .pcr-selection .pcr-color-opacity {
+  margin-inline-start: 8px;
+}
+.pcr-app .pcr-interaction {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--colour-border);
+}
+.pcr-app .pcr-interaction input,
+.pcr-app .pcr-interaction .pcr-result {
+  background: var(--colour-bg);
+  border: 1px solid var(--colour-border);
+  border-radius: 3px;
+  color: var(--colour-text);
+  font-size: 12px;
+  font-family: ui-monospace, Menlo, monospace;
+  padding: 4px 8px;
+  height: 26px;
+}
+.pcr-app .pcr-interaction input:focus,
+.pcr-app .pcr-interaction .pcr-result:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--colour-brand);
+  border-color: var(--colour-brand);
+}
+.pcr-app .pcr-interaction .pcr-type.active,
+.pcr-app .pcr-interaction .pcr-type:hover {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+}
+.pcr-app .pcr-interaction .pcr-type {
+  background: transparent;
+  color: var(--colour-text-muted);
+  border: 1px solid var(--colour-border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.pcr-app .pcr-interaction .pcr-save {
+  background: var(--colour-brand);
+  color: var(--colour-brand-contrast);
+  border: 1px solid var(--colour-brand);
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: filter 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+.pcr-app .pcr-interaction .pcr-save:hover {
+  filter: brightness(1.1);
+}
+.pcr-app .pcr-interaction .pcr-cancel,
+.pcr-app .pcr-interaction .pcr-clear {
+  background: transparent;
+  color: var(--colour-text-muted);
+  border: 1px solid var(--colour-border);
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.pcr-app .pcr-swatches {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--colour-border);
+}
+.pcr-app .pcr-swatches > button {
+  border: 1px solid var(--colour-border);
+  border-radius: 3px;
+  margin: 2px;
+}
+/* Error state propagation via the hidden input */
+input[aria-invalid="true"][type="hidden"] + .pcr-app,
+[data-dz-widget="colorpicker"] .pcr-trigger[aria-invalid="true"] {
+  outline: 1px solid var(--colour-danger);
+}
+
+/* Quill .ql-* token overrides removed in #1001 — Quill replaced by
+ * dz-richtext (Dazzle-native) in #977 cycle 4. Caught by /fuzz
+ * runtime pass: every rich_text page was 404ing on quill.snow.css.
+ * The .dz-richtext-* rules in components/richtext.css handle styling.
+ */
+
+
+/* ── Progress bar token overrides (UX-027 file upload, UX-030 review queue) */
+/* Scoped to progress[data-dz-file-progress] and progress[data-dz-progress]   */
+/* so generic <progress> elements elsewhere keep their browser-default look.  */
+progress[data-dz-file-progress],
+progress[data-dz-progress] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--colour-surface-muted);
+}
+progress[data-dz-file-progress]::-webkit-progress-bar,
+progress[data-dz-progress]::-webkit-progress-bar {
+  background: var(--colour-surface-muted);
+  border-radius: 2px;
+}
+progress[data-dz-file-progress]::-webkit-progress-value,
+progress[data-dz-progress]::-webkit-progress-value {
+  background: var(--colour-brand);
+  border-radius: 2px;
+  transition: width 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+progress[data-dz-file-progress]::-moz-progress-bar,
+progress[data-dz-progress]::-moz-progress-bar {
+  background: var(--colour-brand);
+  border-radius: 2px;
+}
