@@ -1,0 +1,726 @@
+/*
+ * fragment-primitives.css — visual chrome for typed Fragment renderer output.
+ *
+ * The Fragment renderer (src/dazzle/render/fragment/renderer.py) emits a
+ * deterministic class vocabulary derived from the typed primitive types.
+ * Each class needs a matching rule here so flipped surfaces (those with
+ * `render: fragment` in DSL) render with the same visual treatment as
+ * their Jinja-path equivalents.
+ *
+ * Rules use the framework's design tokens — never hardcoded colours,
+ * spaces, or radii — so theme overrides and token-sheet swaps cascade
+ * automatically.
+ *
+ * Plan 4 scope: simple_task.task_list (Surface + Heading + Region.list +
+ * Text + Table). Plan 5+ extends as more surfaces flip.
+ */
+
+@layer components {
+
+  /* ───────────────────────── Page ────────────────────────────
+   * Top-level body class emitted by the Page primitive. The page
+   * primitive wraps `<html>`/`<head>`/`<body>` for typed-Fragment
+   * chrome rendering; this rule provides the body-level baseline so
+   * Page-rendered pages cohabit cleanly with the existing Jinja
+   * shells until the chrome migration completes.
+   */
+
+  .dz-page {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--colour-bg, var(--colour-surface));
+    color: var(--colour-text);
+    font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+  }
+
+  /* Bare-Page chrome: when the Page body is a single Stack (the
+   * shape used by `build_app_403_view` / `build_site_403_view` and
+   * their 404/500 cousins — see #1081) the typed view has no
+   * AppShell wrapper to provide padding or maximum width. Without
+   * these rules the content sits flush against the viewport edge
+   * as raw browser-default text. The `:only-child` selector
+   * deliberately narrows the rule so a normal Page → AppShell →
+   * Stack layout is unaffected — the AppShell intervenes between
+   * Page and Stack, so the selector doesn't match. */
+  .dz-page > .dz-stack:only-child {
+    max-width: 36rem;
+    margin: var(--space-xl) auto;
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  /* ───────────────────────── AppShell ────────────────────────
+   * Multi-slot application layout — sidebar / header / main / footer.
+   * Mirrors the legacy app_shell.html structure so the same component
+   * CSS in `components/fragments.css` (`.dz-app-shell`, `.dz-app-content`)
+   * applies. The Fragment AppShell adds the missing CSS hooks for
+   * the typed slots (`.dz-app-sidebar`, `.dz-app-header`, `.dz-app-main`,
+   * `.dz-app-footer`) so a Fragment-rendered shell still gets layout
+   * structure even when components/fragments.css isn't loaded.
+   */
+
+  .dz-app-sidebar {
+    /* Composes with the existing dz-sidebar styling when present;
+       on its own, provides a minimal column. Width tracks the
+       legacy template's lg:w-64 (16rem). */
+    flex: 0 0 auto;
+    width: 16rem;
+  }
+
+  .dz-app-header {
+    /* Top bar; vertical rhythm matches the dz-topbar component. */
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-block-end: 1px solid var(--colour-border);
+  }
+
+  .dz-app-main {
+    /* The main content slot — flex-grows to fill the column. */
+    flex: 1 1 auto;
+    padding: var(--space-md);
+  }
+
+  .dz-app-footer {
+    padding: var(--space-sm) var(--space-md);
+    border-block-start: 1px solid var(--colour-border);
+  }
+
+  /* ───────────────────────── ErrorPage ───────────────────────
+   * Standalone error page (404, 500, auth fallback).
+   * Centred column with large status code, message, optional
+   * home link. Used inside Page.body for routes without AppShell.
+   */
+
+  .dz-error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    min-height: 60vh;
+    padding: var(--space-xl) var(--space-md);
+    text-align: center;
+  }
+
+  .dz-error-page__code {
+    margin: 0;
+    font-size: var(--text-4xl, 3rem);
+    font-weight: var(--weight-bold);
+    color: var(--colour-text-muted);
+    letter-spacing: -0.02em;
+  }
+
+  .dz-error-page__message {
+    margin: 0;
+    font-size: var(--text-lg);
+    color: var(--colour-text);
+    max-width: 40rem;
+  }
+
+  .dz-error-page__action {
+    margin-block-start: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    color: var(--colour-brand-contrast);
+    background: var(--colour-brand);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+
+  /* ───────────────────────── Topbar ──────────────────────────
+   * Application top bar — leading / title / trailing layout.
+   * Class names match the legacy template's `dz-topbar` /
+   * `dz-topbar-leading` / `dz-topbar-title` / `dz-topbar-trailing`
+   * so existing component CSS applies unchanged.
+   */
+
+  .dz-topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-block-end: 1px solid var(--colour-border);
+  }
+
+  .dz-topbar-leading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .dz-topbar-title {
+    flex: 1 1 auto;
+    min-width: 0;  /* allow truncation if title overflows */
+  }
+
+  .dz-topbar-title-text {
+    font-weight: var(--weight-semibold);
+    color: var(--colour-text);
+  }
+
+  .dz-topbar-trailing {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-inline-start: auto;
+  }
+
+  /* ───────────────────────── Sidebar / Nav ───────────────────
+   * Navigation primitives — Sidebar, NavGroup, NavItem.
+   * Mirrors the legacy template's nav-link conventions; in particular
+   * `[aria-current="page"]` styling so active state has one source of
+   * truth between the visual and accessibility layers.
+   */
+
+  .dz-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    height: 100%;
+    background: var(--colour-surface);
+    border-inline-end: 1px solid var(--colour-border);
+  }
+
+  .dz-sidebar__header {
+    padding-block-end: var(--space-sm);
+    border-block-end: 1px solid var(--colour-border);
+  }
+
+  .dz-sidebar__items,
+  .dz-nav-group__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs, 2px);
+  }
+
+  .dz-nav-item {
+    display: block;
+  }
+
+  .dz-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    color: var(--colour-text);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .dz-nav-link:hover {
+    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.04));
+  }
+
+  .dz-nav-link[aria-current="page"] {
+    /* Active state — visible distinction without overriding the
+       hover treatment. */
+    background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
+    font-weight: var(--weight-medium);
+  }
+
+  .dz-nav-group {
+    /* `<details>` element — no list-style on summary in modern browsers. */
+  }
+
+  .dz-nav-group__header {
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    color: var(--colour-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    list-style: none;  /* hide the default <details> marker */
+  }
+
+  .dz-nav-group__header::-webkit-details-marker {
+    display: none;
+  }
+
+  /* ───────────────────────── Surface ─────────────────────────
+   * Top-level rendered surface — the typed Fragment equivalent of
+   * a workspace's main page or a list/detail page wrapper.
+   * Slots: header (titles), body (content), footer (optional).
+   */
+
+  .dz-surface {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+  }
+
+  .dz-surface__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding-block-end: var(--space-sm);
+    border-block-end: 1px solid var(--colour-border);
+  }
+
+  .dz-surface__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .dz-surface__footer {
+    padding-block-start: var(--space-sm);
+    border-block-start: 1px solid var(--colour-border);
+  }
+
+  /* ───────────────────────── Heading ─────────────────────────
+   * Level-parameterised heading. Level 1 is the page-title weight;
+   * 2-3 are section headings; 4-6 are sub-headings used inside
+   * regions and panels. Sizing pulls from the same scale as the
+   * Jinja-path heading variants.
+   */
+
+  .dz-heading {
+    margin: 0;
+    color: var(--colour-text);
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+  }
+
+  .dz-heading--level-1 { font-size: var(--text-xl); }
+  .dz-heading--level-2 { font-size: var(--text-lg); }
+  .dz-heading--level-3 { font-size: var(--text-base); }
+  .dz-heading--level-4 {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+  .dz-heading--level-5 {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text-muted);
+  }
+  .dz-heading--level-6 {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ───────────────── Layout primitives ──────────────────────
+   * Stack (vertical), Row (horizontal), Grid (n-column), Split
+   * (two-panel). Emitted by src/dazzle/render/fragment/renderer
+   * /_render_layout.py as `<div class="dz-{primitive} dz-{primitive}--
+   * gap-{none|sm|md|lg}">…</div>`. Without these base rules the
+   * children flow inline with zero spacing — the 403/404/500 marketing
+   * pages all rendered "Go to DashboardGo Home" run-together until
+   * #1079 added these. Split has its own grid in site-sections.css
+   * (different naming scheme) and is not styled here.
+   */
+
+  .dz-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dz-stack--gap-none { gap: 0; }
+  .dz-stack--gap-sm { gap: var(--space-sm); }
+  .dz-stack--gap-md { gap: var(--space-md); }
+  .dz-stack--gap-lg { gap: var(--space-lg); }
+
+  .dz-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .dz-row--gap-none { gap: 0; }
+  .dz-row--gap-sm { gap: var(--space-sm); }
+  .dz-row--gap-md { gap: var(--space-md); }
+  .dz-row--gap-lg { gap: var(--space-lg); }
+
+  .dz-row--align-start { align-items: flex-start; }
+  .dz-row--align-center { align-items: center; }
+  .dz-row--align-end { align-items: flex-end; }
+  .dz-row--align-stretch { align-items: stretch; }
+
+  .dz-grid {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  /* Column counts: Grid.columns is an int in [1, 12]. Generated
+   * exhaustively rather than via `repeat(auto-fit, ...)` so the
+   * column count is exactly what the primitive declares. */
+  .dz-grid--columns-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .dz-grid--columns-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dz-grid--columns-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dz-grid--columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .dz-grid--columns-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .dz-grid--columns-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .dz-grid--columns-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .dz-grid--columns-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .dz-grid--columns-9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+  .dz-grid--columns-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .dz-grid--columns-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+  .dz-grid--columns-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+  /* ───────────────────────── Region ──────────────────────────
+   * A semantic content region inside a Surface. The `kind`
+   * modifier drives the layout: list (table-shaped), detail
+   * (definition-list-shaped), form (FormStack), dashboard
+   * (Grid), kanban, calendar, report.
+   *
+   * Plan 4 scope: list only. Other kinds get base treatment but
+   * no kind-specific styling until later plans.
+   */
+
+  .dz-region {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .dz-region--kind-list {
+    /* List-mode region wraps a Table primitive. The table itself
+       inherits its core styling from table.css; this rule provides
+       the list-context spacing and any list-specific cascade
+       (e.g. dz-table inside .dz-region--kind-list gets the same
+       row-hover treatment as the Jinja .dz-list-table path). */
+    overflow-x: auto;
+  }
+
+  .dz-region--kind-list > .dz-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--colour-surface);
+  }
+
+  .dz-region--kind-list > .dz-table thead > tr {
+    border-block-end: 1px solid var(--colour-border);
+    text-align: left;
+  }
+
+  .dz-region--kind-list > .dz-table th {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text-muted);
+  }
+
+  .dz-region--kind-list > .dz-table > tbody > tr {
+    border-block-end: 1px solid var(--colour-border);
+    transition: background-color 0.12s ease;
+  }
+
+  .dz-region--kind-list > .dz-table > tbody > tr:last-child {
+    border-block-end: none;
+  }
+
+  .dz-region--kind-list > .dz-table > tbody > tr:hover {
+    /* No --colour-surface-hover token exists yet; light/dark fallback
+       picks a subtle tint that works in both modes. Promote to a token
+       when more surfaces need it. */
+    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.04));
+  }
+
+  .dz-region--kind-list > .dz-table td {
+    padding: var(--space-sm) var(--space-md);
+    color: var(--colour-text);
+  }
+
+  /* Detail kind — definition-list-shaped layout. Each child Row
+     renders as label (Heading level 4) + value (Text). The Stack
+     wrapper provides the row separation; this rule provides the
+     intra-row layout (label-column + value-column). */
+
+  .dz-region--kind-detail {
+    overflow-x: auto;
+  }
+
+  .dz-region--kind-detail .dz-stack {
+    gap: var(--space-md);
+  }
+
+  .dz-region--kind-detail .dz-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) 1fr;
+    gap: var(--space-md);
+    align-items: baseline;
+  }
+
+  .dz-region--kind-detail .dz-row > .dz-heading {
+    color: var(--colour-text-muted);
+    font-weight: var(--weight-medium);
+    text-align: end;
+  }
+
+  .dz-region--kind-detail .dz-row > .dz-text {
+    color: var(--colour-text);
+  }
+
+  /* ───────────────────────── Related ─────────────────────────
+   * Related-group region — appended to detail surfaces, one per
+   * related entity group (e.g. user_detail showing tasks +
+   * comments). Skeleton placeholder lives here today; htmx-loaded
+   * rows arrive in a later plan.
+   */
+
+  .dz-region--kind-related {
+    margin-block-start: var(--space-lg);
+    padding-block-start: var(--space-md);
+    border-block-start: 1px solid var(--colour-border);
+  }
+
+  .dz-region--kind-related .dz-heading--level-2 {
+    margin-block-end: var(--space-sm);
+  }
+
+  /* ───────────────────────── Form ────────────────────────────
+   * Form-mode region — vertical stack of fields with label-above-input
+   * layout. Used by CREATE and EDIT surfaces.
+   */
+
+  .dz-region--kind-form {
+    /* Region container; FormStack inside provides actual layout. */
+  }
+
+  .dz-form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    max-width: 40rem;
+  }
+
+  .dz-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .dz-field__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text);
+  }
+
+  .dz-field__input {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+    color: var(--colour-text);
+    background: var(--colour-surface);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .dz-field__input:focus {
+    outline: 2px solid var(--colour-accent);
+    outline-offset: 1px;
+  }
+
+  .dz-combobox {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .dz-combobox__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text);
+  }
+
+  .dz-combobox__select {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+    color: var(--colour-text);
+    background: var(--colour-surface);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Plan 14: RefPicker — REF field selector. Parallels .dz-combobox in
+     visual treatment; the data-ref-api attribute drives client-side
+     option population via dz.filterRefSelect. */
+  .dz-ref-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .dz-ref-picker__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--colour-text);
+  }
+
+  .dz-ref-picker__select {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--text-base);
+    color: var(--colour-text);
+    background: var(--colour-surface);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .dz-submit {
+    align-self: flex-start;
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+    color: var(--colour-brand-contrast);
+    background: var(--colour-brand);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  .dz-submit--variant-secondary {
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    border: 1px solid var(--colour-border);
+  }
+
+  .dz-submit--variant-danger {
+    background: var(--colour-danger);
+    color: var(--colour-brand-contrast);
+  }
+
+  /* ───────────────────────── Text ────────────────────────────
+   * Inline text primitive — used inside cells, in EmptyState
+   * descriptions, badges, and as a bare leaf primitive. The tone
+   * modifier controls colour role (default/muted/danger/success/
+   * warning); other tones map to existing token roles.
+   */
+
+  .dz-text {
+    color: var(--colour-text);
+  }
+
+  .dz-text--tone-default { color: var(--colour-text); }
+  .dz-text--tone-muted   { color: var(--colour-text-muted); }
+  .dz-text--tone-danger  { color: var(--colour-danger); }
+  .dz-text--tone-success { color: var(--colour-success); }
+  .dz-text--tone-warning { color: var(--colour-warning); }
+
+}  /* @layer components */
+
+/* ── Icon primitive + inline-SVG icons (HaTchi-MaXchi TASTE-6) ──────────
+   Server-rendered Lucide SVGs fill their fixed-size wrapper and inherit
+   currentColor; sizes sit on the type scale. */
+.dz-icon,
+.dz-task-inbox-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.dz-task-inbox-item-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--colour-text-muted);
+}
+
+.dz-icon--size-sm { width: 1rem; height: 1rem; }
+.dz-icon--size-md { width: 1.25rem; height: 1.25rem; }
+.dz-icon--size-lg { width: 1.5rem; height: 1.5rem; }
+
+.dz-icon svg,
+.dz-action-card-icon svg,
+.dz-status-list-icon svg,
+.dz-task-inbox-item-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Nav icons (HaTchi-MaXchi Phase 3, TASTE-6) ─────────────────────────
+   Every sidebar item carries a registry SVG — authored or inferred. Muted
+   at rest; inherits the link colour on hover/active. */
+.dz-nav-link__icon,
+.dz-nav-group__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--colour-text-muted);
+}
+
+.dz-nav-link:hover .dz-nav-link__icon,
+.dz-nav-link[aria-current="page"] .dz-nav-link__icon {
+  color: currentColor;
+}
+
+.dz-nav-link__icon svg,
+.dz-nav-group__icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.dz-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Empty-state icon (TASTE-8): quiet registry glyph above the message. */
+.dz-empty-state__title {
+  color: var(--colour-text); /* tranche-1 nit: was too dim on dark surfaces */
+}
+
+.dz-empty-state__icon {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  color: var(--colour-text-muted);
+  margin-block-end: var(--space-sm);
+}
+
+.dz-empty-state__icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Error pages (403/404/500) — HaTchi-MaXchi #1536 ────────────────────
+   The app-shell-lite error views render Page > Stack > Card(EmptyState).
+   Centre that lone card in the viewport; everything else on these pages
+   inherits the empty-state styling. */
+.dz-page > .dz-stack:has(> .dz-card .dz-empty-state) {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-2xl);
+  background: var(--colour-bg);
+}
+
+.dz-page > .dz-stack:has(> .dz-card .dz-empty-state) > .dz-card {
+  width: 100%;
+  max-width: 28rem;
+  text-align: center;
+  padding: var(--space-2xl);
+}
+
+.dz-page > .dz-stack:has(> .dz-card .dz-empty-state) .dz-empty-state__action a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  padding-inline: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--colour-brand);
+  color: var(--colour-brand-contrast);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.dz-page > .dz-stack:has(> .dz-card .dz-empty-state) .dz-empty-state__action a:hover {
+  background: var(--brand-700);
+}
