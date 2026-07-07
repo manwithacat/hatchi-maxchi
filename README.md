@@ -95,7 +95,7 @@ a request/response round-trip is a "hypermedia exchange"; the individual
 A Hyperpart's code is physically scattered *by build necessity*: its CSS
 is concatenated in cascade-layer order (so it lives in `components/*.css`
 accumulators), its controller is bundled (`controllers/`), and its markup
-+ contract are in `site/registry.py`. We can't co-locate everything in one
+and contract are in `site/registry.py`. We can't co-locate everything in one
 file like shadcn — but the relationship must stay legible, both to an agent
 and a human. Two mechanisms, kept honest by a gate:
 
