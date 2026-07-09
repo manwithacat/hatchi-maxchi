@@ -1222,6 +1222,72 @@ HYPERPARTS: list[Hyperpart] = [
         ),
     ),
     Hyperpart(
+        "combobox",
+        "Combobox",
+        "Forms",
+        "Searchable enum single-select — a native <select> progressively "
+        "enhanced into a type-to-filter combobox. JS off: a fully usable "
+        "select. JS on: a searchable role=combobox overlay; the native "
+        "select stays as the submitted value.",
+        '<label class="dz-field hm-measure" for="hm-cb-field">'
+        '<span class="dz-field__label">Priority</span>'
+        '<select id="hm-cb-field" name="priority" '
+        'data-dz-combobox class="dz-form-input">'
+        '<option value="">Select a priority…</option>'
+        '<option value="low">Low</option>'
+        '<option value="medium" selected>Medium</option>'
+        '<option value="high">High</option>'
+        '<option value="urgent">Urgent</option>'
+        "</select></label>",
+        notes="Progressive enhancement: the server renders a real "
+        "<code>&lt;select data-dz-combobox&gt;</code> with all its options "
+        "(placeholder first) — usable and submittable with no JS, native "
+        "<code>required</code> intact. On first interaction "
+        "<code>dz-combobox.js</code> builds a sibling overlay: a "
+        "<code>role=&quot;combobox&quot;</code> input + a "
+        "<code>role=&quot;listbox&quot;</code> of the options, hiding the "
+        "native select (kept in the DOM as the submitted value). State is "
+        "in the DOM — <code>data-dz-open</code> on the root (CSS hides the "
+        "listbox off it), <code>aria-expanded</code> mirrored on the input. "
+        "Typing filters (substring, case-insensitive); Up/Down move "
+        "<code>aria-activedescendant</code>; Enter/click selects (writes the "
+        "native select + fires <code>change</code>); Esc closes; focus "
+        "leaving the widget closes after a 200ms grace.",
+        tags=("forms",),
+        controller="controllers/dz-combobox.js",
+    ),
+    Hyperpart(
+        "tags",
+        "Tags",
+        "Forms",
+        "Multi-value chips + free create — a native text input carrying a "
+        "comma-joined value, progressively enhanced into a chips UI. JS off: "
+        "a usable comma-separated text field. JS on: type + Enter/comma "
+        "creates a chip, × removes; the native input stays as the submitted "
+        "value.",
+        '<label class="dz-field hm-measure" for="hm-tags-field">'
+        '<span class="dz-field__label">Labels</span>'
+        '<input id="hm-tags-field" name="labels" type="text" '
+        'data-dz-tags class="dz-form-input" value="urgent,backend" '
+        'placeholder="Add a label…"></label>',
+        notes="Progressive enhancement: the server renders a plain "
+        "<code>&lt;input type=&quot;text&quot; data-dz-tags&gt;</code> whose "
+        "value is a COMMA-JOINED tag string — usable and submittable with no "
+        "JS (type <code>a, b, c</code>; the server splits on comma), native "
+        "<code>required</code> intact. On first interaction "
+        "<code>dz-tags.js</code> wraps it in a <code>.dz-tags</code> root — a "
+        "<code>role=&quot;list&quot;</code> of removable chips + a borderless "
+        "entry — and hides the native input (kept in the DOM as the submitted "
+        "value). Every add/remove rewrites the native input to the "
+        "comma-joined chip list and fires <code>change</code>, so the submit "
+        "shape never changes. Type + Enter or comma creates a chip "
+        "(trim/dedup/skip-empty); paste splits on comma/newline; × or "
+        "Backspace-on-empty removes a chip; add/remove is announced via a "
+        "visually-hidden <code>aria-live</code> region.",
+        tags=("forms",),
+        controller="controllers/dz-tags.js",
+    ),
+    Hyperpart(
         "date-range",
         "Date range",
         "Forms",

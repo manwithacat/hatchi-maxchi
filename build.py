@@ -45,14 +45,17 @@ CSS_SOURCES = [
     ("components", "components/dialog.css"),
     ("components", "components/drawer.css"),
     ("components", "components/form.css"),
+    ("components", "components/richtext.css"),
     ("components", "components/fragment-primitives.css"),
     ("components", "components/hm-core.css"),
     ("components", "components/htmx-states.css"),
+    ("components", "components/transitions.css"),
     ("components", "components/pagination.css"),
     ("components", "components/skeleton.css"),
     ("components", "components/table.css"),
     ("components", "components/layout.css"),
     ("components", "components/app-shell.css"),
+    ("components", "components/workspace-shell.css"),
     ("components", "components/status-list.css"),
     ("components", "components/action-grid.css"),
     ("components", "components/queue.css"),
@@ -75,6 +78,8 @@ CSS_SOURCES = [
     ("components", "components/task-inbox.css"),
     ("components", "components/grid-list.css"),
     ("components", "components/list-region.css"),
+    ("components", "components/detail.css"),
+    ("components", "components/onboarding.css"),
     ("components", "components/tree.css"),
     ("components", "components/diagram.css"),
     ("components", "components/confirm-panel.css"),
@@ -82,11 +87,25 @@ CSS_SOURCES = [
     ("components", "components/form-chrome.css"),
     ("components", "components/date-range.css"),
     ("components", "components/search-select.css"),
+    ("components", "components/combobox.css"),
+    ("components", "components/tags.css"),
     ("components", "components/profile-card.css"),
     ("components", "components/two-factor.css"),
     ("components", "components/pdf.css"),
+    ("components", "components/pdf-viewer.css"),
     ("components", "components/tabs.css"),
     ("components", "components/touch-targets.css"),
+    ("components", "components/mobile-scroll.css"),
+    # fragments.css (HMC-016): shared fragment/region chrome families, migrated
+    # wholesale from Dazzle. Registered late to preserve source-order tie-winning
+    # it had when it loaded after the HM dist in the Dazzle bundle.
+    ("components", "components/fragments.css"),
+    # dashboard-card LAST (HMC-007d): its .dz-add-card-button must keep winning
+    # over touch-targets' coarse-pointer override (source-order parity with the
+    # pre-move state where Dazzle dashboard.css loaded after the whole HM dist).
+    ("components", "components/dashboard-card.css"),
+    ("components", "components/sitespec.css"),
+    ("components", "components/feedback-widget.css"),
 ]
 
 LAYER_ORDER = "@layer vendor, tokens, base, components;"
@@ -105,6 +124,8 @@ JS_SOURCES = [
     "controllers/dz-app-shell.js",
     "controllers/dz-confirm-gate.js",
     "controllers/dz-search-select.js",
+    "controllers/dz-combobox.js",
+    "controllers/dz-tags.js",
     "controllers/dz-money.js",
     "controllers/dz-wizard.js",
     "controllers/dz-color.js",

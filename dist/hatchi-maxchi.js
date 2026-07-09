@@ -2115,6 +2115,19 @@
 (function () {
   "use strict";
 
+  // A parked destination is only promoted into a live `href` if it is a
+  // relative URL or an http(s) absolute — never a `javascript:`/`data:`
+  // scheme. Control chars and surrounding whitespace are stripped first so a
+  // `java\tscript:` cannot smuggle past the scheme check (browsers ignore
+  // them when parsing the scheme). Returns the href if safe, else null.
+  function safeHref(raw) {
+    var v = String(raw == null ? "" : raw).replace(/[\u0000-\u0020]+/g, "");
+    var scheme = /^([a-zA-Z][a-zA-Z0-9+.\-]*):/.exec(v);
+    if (!scheme) return raw; // scheme-less = relative (#, /, ?, …) — safe
+    var s = scheme[1].toLowerCase();
+    return s === "http" || s === "https" ? raw : null;
+  }
+
   document.addEventListener("change", function (evt) {
     var input = evt.target;
     if (!input || !input.matches || !input.matches('input[type="checkbox"]'))
@@ -2139,7 +2152,8 @@
     var href = primary.getAttribute("data-confirm-href");
 
     if (needed === 0 || ticked >= needed) {
-      if (href) primary.setAttribute("href", href);
+      var safe = href && safeHref(href);
+      if (safe) primary.setAttribute("href", safe);
       primary.removeAttribute("aria-disabled");
     } else {
       primary.removeAttribute("href");
@@ -2194,6 +2208,591 @@
       if (root.contains(document.activeElement)) return; // re-focused
       setOpen(root, false);
     }, 200);
+  });
+})();
+
+/* ── controllers/combobox.js ── */
+/* HYPERPART: combobox */
+/*
+ * combobox — HM-native searchable enum single-select (HMC-018 slice 1),
+ * the vanilla replacement for TomSelect's `widget=combobox` mount.
+ *
+ * Progressive enhancement, delegated from the document, state-in-DOM.
+ * The server renders a real `<select data-combobox>` with all its
+ * <option>s — fully usable with JS OFF (submits, native `required`). On
+ * first interaction (pointerdown / focusin / keydown) we build a sibling
+ * searchable overlay: a `role="combobox"` text input + a `role="listbox"`
+ * <ul> of the options, wrapped in a `.combobox` root. The native
+ * <select> stays in the DOM as the submitted value; on selection we write
+ * its `.value` and fire a `change` event, so the form + any listeners see
+ * the same control they always did.
+ *
+ * Open/closed is `data-open` on the `.combobox` ROOT (CSS hides the
+ * listbox off it); `aria-expanded` on the input is the a11y mirror. Focus
+ * leaving the widget closes after a 200ms grace (mirrors search-select
+ * — a click on an option blurs the input first). Enhance-once is marked
+ * with `data-enhanced` on the root.
+ *
+ * a11y: input is role=combobox + aria-expanded + aria-controls +
+ * aria-autocomplete=list + aria-haspopup=listbox + aria-activedescendant;
+ * the <ul> is role=listbox and each row role=option with aria-selected.
+ * Keyboard: type filters (substring, case-insensitive); ArrowUp/Down move
+ * the active descendant over visible rows; Enter/click selects; Esc closes;
+ * focus opens.
+ */
+(function () {
+  "use strict";
+
+  function setOpen(root, open) {
+    if (open) root.setAttribute("data-open", "true");
+    else root.removeAttribute("data-open");
+    var input = root.querySelector(".combobox-input");
+    if (input) input.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) setActive(root, null);
+  }
+
+  function options(root) {
+    return Array.prototype.slice.call(
+      root.querySelectorAll(".combobox-option"),
+    );
+  }
+
+  function visibleOptions(root) {
+    return options(root).filter(function (li) {
+      return !li.hidden;
+    });
+  }
+
+  // The active (keyboard-highlighted) descendant — distinct from the
+  // chosen option (aria-selected). Mirrored onto the input's
+  // aria-activedescendant so a screen reader tracks the highlight.
+  function setActive(root, li) {
+    var input = root.querySelector(".combobox-input");
+    options(root).forEach(function (o) {
+      if (o === li) o.setAttribute("data-active", "true");
+      else o.removeAttribute("data-active");
+    });
+    if (input) {
+      if (li) input.setAttribute("aria-activedescendant", li.id);
+      else input.removeAttribute("aria-activedescendant");
+    }
+    if (li) li.scrollIntoView({ block: "nearest" });
+  }
+
+  function activeOption(root) {
+    return root.querySelector('.combobox-option[data-active="true"]');
+  }
+
+  function selectedLabel(root) {
+    var chosen = root.querySelector(
+      '.combobox-option[aria-selected="true"]',
+    );
+    return chosen ? chosen.textContent : "";
+  }
+
+  // Commit a choice: write the native <select> value, sync the input
+  // display + aria-selected, close, and fire `change` so the form and any
+  // listeners react exactly as they did with the bare <select>.
+  function choose(root, li) {
+    var select = root.querySelector("select[data-combobox]");
+    var input = root.querySelector(".combobox-input");
+    if (!select || !input) return;
+    select.value = li.getAttribute("data-value") || "";
+    options(root).forEach(function (o) {
+      o.setAttribute("aria-selected", o === li ? "true" : "false");
+    });
+    input.value = li.textContent;
+    setOpen(root, false);
+    input.focus();
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function filter(root, query) {
+    var q = query.trim().toLowerCase();
+    var empty = root.querySelector(".combobox-empty");
+    var anyVisible = false;
+    options(root).forEach(function (li) {
+      var match = li.textContent.toLowerCase().indexOf(q) !== -1;
+      li.hidden = !match;
+      if (match) anyVisible = true;
+    });
+    if (empty) empty.hidden = anyVisible;
+    // Keep the active descendant on a still-visible row.
+    var active = activeOption(root);
+    if (!active || active.hidden)
+      setActive(root, visibleOptions(root)[0] || null);
+  }
+
+  // Build the searchable overlay once, from the server-rendered <select>.
+  function enhance(select) {
+    var root = document.createElement("div");
+    root.className = "combobox";
+
+    var name = select.id || select.name || "combobox";
+    var listId = name + "-listbox";
+
+    // Field label: the substrate wraps the widget in
+    // `<label class="field"><span class="field__label">…</span>…</label>`.
+    var labelSpan = select.closest(".field")
+      ? select.closest(".field").querySelector(".field__label")
+      : null;
+    var labelText = labelSpan ? labelSpan.textContent.trim() : "";
+
+    // The leading value="" option is the placeholder prompt, not a choice.
+    var opts = Array.prototype.slice.call(select.options);
+    var placeholderOpt = opts.length && opts[0].value === "" ? opts[0] : null;
+    var choices = placeholderOpt ? opts.slice(1) : opts;
+    var placeholder = placeholderOpt ? placeholderOpt.textContent : "";
+
+    var input = document.createElement("input");
+    input.type = "text";
+    input.className = "combobox-input";
+    input.setAttribute("role", "combobox");
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("aria-expanded", "false");
+    input.setAttribute("aria-controls", listId);
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-haspopup", "listbox");
+    if (labelText) input.setAttribute("aria-label", labelText);
+    if (placeholder) input.setAttribute("placeholder", placeholder);
+    if (select.hasAttribute("required")) {
+      input.setAttribute("aria-required", "true");
+    }
+
+    var list = document.createElement("ul");
+    list.className = "combobox-listbox";
+    list.id = listId;
+    list.setAttribute("role", "listbox");
+    if (labelText) list.setAttribute("aria-label", labelText);
+
+    var selectedText = "";
+    choices.forEach(function (opt, i) {
+      var li = document.createElement("li");
+      li.className = "combobox-option";
+      li.id = name + "-opt-" + i;
+      li.setAttribute("role", "option");
+      li.setAttribute("data-value", opt.value);
+      var chosen = opt.selected && opt.value !== "";
+      li.setAttribute("aria-selected", chosen ? "true" : "false");
+      li.textContent = opt.textContent;
+      if (chosen) selectedText = opt.textContent;
+      list.appendChild(li);
+    });
+
+    var empty = document.createElement("li");
+    empty.className = "combobox-empty";
+    empty.setAttribute("role", "presentation");
+    empty.textContent = "No matches";
+    empty.hidden = true;
+    list.appendChild(empty);
+
+    if (selectedText) input.value = selectedText;
+
+    // Move the native <select> under the root (submit value + no-JS
+    // fallback), take it out of the tab order, and mount the overlay. Drop
+    // `required` off the now-`display:none` select: a hidden required control
+    // would make the browser block submit with an unfocusable console error
+    // and no visible bubble. The visible input carries `aria-required` for
+    // AT (set above); server-side validation is the enforcement backstop, and
+    // the no-JS path still uses native `required` on the unhidden select.
+    select.removeAttribute("required");
+    select.parentNode.insertBefore(root, select);
+    select.setAttribute("tabindex", "-1");
+    root.appendChild(input);
+    root.appendChild(select);
+    root.appendChild(list);
+    root.setAttribute("data-enhanced", "");
+    return root;
+  }
+
+  function rootFor(select) {
+    var existing = select.closest(".combobox[data-enhanced]");
+    return existing || enhance(select);
+  }
+
+  // ── Enhance-on-first-interaction ─────────────────────────────────────
+  // A pointerdown on the bare select would pop the native menu; enhance
+  // first and swallow the event, then focus our input.
+  document.addEventListener(
+    "pointerdown",
+    function (evt) {
+      var select =
+        evt.target.closest && evt.target.closest("select[data-combobox]");
+      if (!select || select.closest(".combobox[data-enhanced]")) return;
+      evt.preventDefault();
+      var root = rootFor(select);
+      var input = root.querySelector(".combobox-input");
+      if (input) input.focus();
+      setOpen(root, true);
+    },
+    true,
+  );
+
+  // Keyboard tab-in / typing onto the bare select enhances too.
+  document.addEventListener("focusin", function (evt) {
+    var select =
+      evt.target.closest && evt.target.closest("select[data-combobox]");
+    if (select && !select.closest(".combobox[data-enhanced]")) {
+      var root = rootFor(select);
+      var input = root.querySelector(".combobox-input");
+      if (input) input.focus();
+      setOpen(root, true);
+      return;
+    }
+    // Focus entering the enhanced input opens the listbox.
+    var input2 = evt.target.closest && evt.target.closest(".combobox-input");
+    if (input2) {
+      var r = input2.closest(".combobox");
+      if (r) setOpen(r, true);
+    }
+  });
+
+  document.addEventListener("focusout", function (evt) {
+    var input = evt.target.closest && evt.target.closest(".combobox-input");
+    if (!input) return;
+    var root = input.closest(".combobox");
+    if (!root) return;
+    setTimeout(function () {
+      if (root.contains(document.activeElement)) return; // re-focused
+      // Restore the display text to the current selection (a half-typed
+      // filter must not stick as a phantom value).
+      input.value = selectedLabel(root);
+      setOpen(root, false);
+    }, 200);
+  });
+
+  document.addEventListener("input", function (evt) {
+    var input = evt.target.closest && evt.target.closest(".combobox-input");
+    if (!input) return;
+    var root = input.closest(".combobox");
+    if (!root) return;
+    setOpen(root, true);
+    filter(root, input.value);
+  });
+
+  document.addEventListener("keydown", function (evt) {
+    var input = evt.target.closest && evt.target.closest(".combobox-input");
+    if (!input) return;
+    var root = input.closest(".combobox");
+    if (!root) return;
+    var vis = visibleOptions(root);
+
+    if (evt.key === "ArrowDown" || evt.key === "ArrowUp") {
+      evt.preventDefault();
+      if (!root.hasAttribute("data-open")) {
+        setOpen(root, true);
+        filter(root, input.value);
+        vis = visibleOptions(root);
+      }
+      if (!vis.length) return;
+      var cur = activeOption(root);
+      var idx = cur ? vis.indexOf(cur) : -1;
+      var next =
+        evt.key === "ArrowDown"
+          ? Math.min(idx + 1, vis.length - 1)
+          : Math.max(idx - 1, 0);
+      if (idx === -1) next = evt.key === "ArrowDown" ? 0 : vis.length - 1;
+      setActive(root, vis[next]);
+    } else if (evt.key === "Enter") {
+      var active = activeOption(root);
+      if (active && !active.hidden) {
+        evt.preventDefault();
+        choose(root, active);
+      }
+    } else if (evt.key === "Escape") {
+      if (root.hasAttribute("data-open")) {
+        evt.preventDefault();
+        input.value = selectedLabel(root);
+        setOpen(root, false);
+      }
+    }
+  });
+
+  document.addEventListener("click", function (evt) {
+    var li = evt.target.closest && evt.target.closest(".combobox-option");
+    if (!li || li.hidden) return;
+    var root = li.closest(".combobox");
+    if (root) choose(root, li);
+  });
+})();
+
+/* ── controllers/tags.js ── */
+/* HYPERPART: tags */
+/*
+ * tags — HM-native multi-value chips input (HMC-018 slice 2), the
+ * vanilla replacement for TomSelect's `widget=tags` mount.
+ *
+ * Progressive enhancement, delegated from the document, state-in-DOM.
+ * The server renders a plain `<input type="text" data-tags>` whose value
+ * is a COMMA-JOINED tag string (e.g. "alpha,beta") — fully usable with JS
+ * OFF (the user types "a, b, c"; the server splits on comma), and it is the
+ * submitted value + native `required`. On first interaction
+ * (pointerdown / focusin) we build a sibling chips UI: a `role="list"` of
+ * removable chips + a borderless text entry, wrapped in a `.tags` root.
+ * The native input STAYS in the DOM (still submits) but leaves the visual
+ * layer; on every add/remove we rewrite its `.value` to the comma-joined
+ * chip list and fire `change`, so the form + any listeners see the exact
+ * same control they always did — the submit contract never changes.
+ *
+ * Enhance-once is marked with `data-enhanced` on the root. a11y: the
+ * chips are a `role="list"` of `role="listitem"` chips, each with a
+ * focusable × button labelled "Remove {tag}"; the entry gets an aria-label
+ * from the field label; add/remove is announced through a visually-hidden
+ * `aria-live="polite"` region.
+ *
+ * Keyboard: type + Enter or comma creates a chip (trim / dedup / skip
+ * empty); paste splits on comma / newline; Backspace on an empty entry
+ * removes the last chip; the × button removes its chip (Enter/Space fire
+ * it). Tab reaches the entry and each × like any control.
+ */
+(function () {
+  "use strict";
+
+  // Parse a comma-joined value string into an ordered, de-duplicated,
+  // empty-stripped list — the shape the server splits back apart.
+  function parseTags(raw) {
+    var out = [];
+    var seen = Object.create(null);
+    (raw || "").split(",").forEach(function (part) {
+      var tag = part.trim();
+      if (!tag || seen[tag]) return;
+      seen[tag] = true;
+      out.push(tag);
+    });
+    return out;
+  }
+
+  function chips(root) {
+    return Array.prototype.slice.call(root.querySelectorAll(".tags-chip"));
+  }
+
+  function chipValues(root) {
+    return chips(root).map(function (c) {
+      return c.getAttribute("data-value") || "";
+    });
+  }
+
+  // Rewrite the native input (the submitted value) to the comma-joined chip
+  // list and fire `change`, so the form + any listeners react exactly as
+  // they did with the bare input.
+  function sync(root) {
+    var native = root.querySelector("input[data-tags]");
+    if (!native) return;
+    native.value = chipValues(root).join(",");
+    native.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function announce(root, msg) {
+    var live = root.querySelector("[data-tags-live]");
+    if (live) live.textContent = msg;
+  }
+
+  function makeChip(value) {
+    var chip = document.createElement("span");
+    chip.className = "tags-chip";
+    chip.setAttribute("role", "listitem");
+    chip.setAttribute("data-value", value);
+
+    var label = document.createElement("span");
+    label.className = "tags-chip-label";
+    label.textContent = value;
+
+    var remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "tags-remove";
+    remove.setAttribute("aria-label", "Remove " + value);
+    remove.textContent = "×"; // ×
+
+    chip.appendChild(label);
+    chip.appendChild(remove);
+    return chip;
+  }
+
+  // Add one tag: trim, skip empty, skip duplicate; returns whether it landed.
+  function addTag(root, raw) {
+    var value = (raw || "").trim();
+    if (!value) return false;
+    if (chipValues(root).indexOf(value) !== -1) return false;
+    root.querySelector(".tags-list").appendChild(makeChip(value));
+    sync(root);
+    announce(root, "Added " + value);
+    return true;
+  }
+
+  // Split a pasted / typed blob on commas + newlines and add each token.
+  function addMany(root, text) {
+    (text || "").split(/[,\n\r]+/).forEach(function (part) {
+      addTag(root, part);
+    });
+  }
+
+  function removeChip(root, chip) {
+    var value = chip.getAttribute("data-value") || "";
+    chip.remove();
+    sync(root);
+    announce(root, "Removed " + value);
+    focusEntry(root);
+  }
+
+  function focusEntry(root) {
+    var entry = root.querySelector(".tags-entry");
+    if (entry) entry.focus();
+  }
+
+  // Build the chips overlay once, from the server-rendered native input.
+  function enhance(native) {
+    var root = document.createElement("div");
+    root.className = "tags";
+
+    // Field label: the substrate wraps the widget in
+    // `<label class="field"><span class="field__label">…</span>…</label>`.
+    var labelSpan = native.closest(".field")
+      ? native.closest(".field").querySelector(".field__label")
+      : null;
+    var labelText = labelSpan ? labelSpan.textContent.trim() : "";
+
+    var list = document.createElement("span");
+    list.className = "tags-list";
+    list.setAttribute("role", "list");
+    if (labelText) list.setAttribute("aria-label", labelText);
+
+    var entry = document.createElement("input");
+    entry.type = "text";
+    entry.className = "tags-entry";
+    entry.setAttribute("autocomplete", "off");
+    if (labelText) entry.setAttribute("aria-label", labelText);
+    var placeholder = native.getAttribute("placeholder");
+    if (placeholder) entry.setAttribute("placeholder", placeholder);
+
+    var live = document.createElement("span");
+    live.className = "visually-hidden";
+    live.setAttribute("data-tags-live", "");
+    live.setAttribute("aria-live", "polite");
+    live.setAttribute("role", "status");
+
+    // Mount: the native input stays in the DOM as the submit value (+ no-JS
+    // fallback) but the CSS hides it off `data-enhanced`. Drop `required`
+    // off the now-hidden control (a hidden required field blocks submit with
+    // an unfocusable browser error and no visible bubble); the visible entry
+    // carries `aria-required` for AT, server-side validation is the backstop,
+    // and the no-JS path keeps native `required` on the unhidden input.
+    if (native.hasAttribute("required")) {
+      native.removeAttribute("required");
+      entry.setAttribute("aria-required", "true");
+    }
+    if (native.getAttribute("aria-invalid") === "true") {
+      root.setAttribute("aria-invalid", "true");
+    }
+
+    native.parentNode.insertBefore(root, native);
+    native.setAttribute("tabindex", "-1");
+    root.appendChild(native);
+    root.appendChild(list);
+    root.appendChild(entry);
+    root.appendChild(live);
+
+    // Seed chips from the native input's current comma value, then normalise
+    // the native value to the parsed (trimmed / deduped) form. No `change`
+    // fires here — only user mutations sync.
+    parseTags(native.value).forEach(function (value) {
+      list.appendChild(makeChip(value));
+    });
+    native.value = chipValues(root).join(",");
+
+    root.setAttribute("data-enhanced", "");
+    return root;
+  }
+
+  function rootFor(native) {
+    return native.closest(".tags[data-enhanced]") || enhance(native);
+  }
+
+  // ── Enhance-on-first-interaction ─────────────────────────────────────
+  // A pointerdown on the bare input would focus it; enhance first and swallow
+  // the event, then focus our entry.
+  document.addEventListener(
+    "pointerdown",
+    function (evt) {
+      var native =
+        evt.target.closest && evt.target.closest("input[data-tags]");
+      if (!native || native.closest(".tags[data-enhanced]")) return;
+      evt.preventDefault();
+      focusEntry(rootFor(native));
+    },
+    true,
+  );
+
+  // Keyboard tab-in onto the bare input enhances too.
+  document.addEventListener("focusin", function (evt) {
+    var native =
+      evt.target.closest && evt.target.closest("input[data-tags]");
+    if (native && !native.closest(".tags[data-enhanced]")) {
+      focusEntry(rootFor(native));
+    }
+  });
+
+  // Clicking the box background (not a chip, its × button, or the entry)
+  // focuses the entry — the whole box behaves like one input.
+  document.addEventListener("pointerdown", function (evt) {
+    var root =
+      evt.target.closest && evt.target.closest(".tags[data-enhanced]");
+    if (!root) return;
+    if (
+      evt.target.closest(".tags-chip") ||
+      evt.target.closest(".tags-entry")
+    ) {
+      return;
+    }
+    evt.preventDefault();
+    focusEntry(root);
+  });
+
+  document.addEventListener("keydown", function (evt) {
+    var entry = evt.target.closest && evt.target.closest(".tags-entry");
+    if (!entry) return;
+    var root = entry.closest(".tags");
+    if (!root) return;
+
+    if (evt.key === "Enter" || evt.key === ",") {
+      // Enter / comma commit the current token (never let the comma type into
+      // the entry, and never let Enter submit the form from here).
+      if (entry.value.trim()) {
+        evt.preventDefault();
+        addTag(root, entry.value);
+        entry.value = "";
+      } else if (evt.key === ",") {
+        evt.preventDefault();
+      }
+    } else if (evt.key === "Backspace" && entry.value === "") {
+      var cs = chips(root);
+      if (cs.length) {
+        evt.preventDefault();
+        removeChip(root, cs[cs.length - 1]);
+      }
+    }
+  });
+
+  document.addEventListener("paste", function (evt) {
+    var entry = evt.target.closest && evt.target.closest(".tags-entry");
+    if (!entry) return;
+    var root = entry.closest(".tags");
+    if (!root) return;
+    var data = evt.clipboardData || window.clipboardData;
+    var text = data ? data.getData("text") : "";
+    // A single-token paste (no separators) falls through to normal typing —
+    // the user commits it with Enter. Multi-token paste splits into chips.
+    if (text.indexOf(",") === -1 && text.indexOf("\n") === -1) return;
+    evt.preventDefault();
+    addMany(root, text);
+    entry.value = "";
+  });
+
+  document.addEventListener("click", function (evt) {
+    var btn = evt.target.closest && evt.target.closest(".tags-remove");
+    if (!btn) return;
+    var root = btn.closest(".tags");
+    var chip = btn.closest(".tags-chip");
+    if (root && chip) removeChip(root, chip);
   });
 })();
 
@@ -2505,7 +3104,20 @@
       say("Loading document…");
       var lib = await loadLib(root);
       var src = root.getAttribute("data-pdf-src");
-      var doc = await lib.getDocument(src).promise;
+      // #1556: open big PDFs on first-page bytes instead of prefetching the
+      // whole file. disableAutoFetch stops PDF.js's background whole-file
+      // pull, so large documents stream pages on demand over HTTP ranges.
+      // PDF.js still fetches SMALL PDFs in one shot — it only issues range
+      // GETs when the server-sent Content-Length exceeds its internal
+      // threshold — so tiny documents pay no extra round-trips (size-gated by
+      // PDF.js). The server route (serve_bytes) already advertises
+      // Accept-Ranges + Content-Length, which is what PDF.js keys off.
+      var doc = await lib.getDocument({
+        url: src,
+        disableAutoFetch: true,
+        disableStream: false,
+        rangeChunkSize: 65536,
+      }).promise;
 
       var syncUrl = root.getAttribute("data-pdf-state") === "url";
       var fromUrl = syncUrl ? urlState() : { page: null, zoom: null };
@@ -2515,7 +3127,10 @@
           Math.max(
             1,
             fromUrl.page ||
-              parseInt(root.getAttribute("data-pdf-initial-page") || "1", 10) ||
+              parseInt(
+                root.getAttribute("data-pdf-initial-page") || "1",
+                10,
+              ) ||
               1,
           ),
         ),
