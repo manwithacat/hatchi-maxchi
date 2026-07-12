@@ -103,6 +103,8 @@ _HTMX_PIN_FALLBACK = "4.0.0-beta4"
 
 _ICON_RE = re.compile(r"\{icon:([a-z0-9-]+)\}")
 _SVG_RE = re.compile(r"\{svg:([a-z0-9-]+)\}")
+# Runtime mock-htmx only — not expanded at build time (see MOCK_HTMX expand()).
+_MOCK_I_RE = re.compile(r"\{i:([a-z0-9-]+)\}")
 
 
 def _hm_package_version() -> str:
@@ -1403,10 +1405,50 @@ def expand_icons(markup: str) -> str:
     return markup
 
 
+def mock_htmx_icon_names(mock_src: str | None = None) -> frozenset[str]:
+    """Every ``{i:name}`` token in MOCK_HTMX — must all exist in ``ICONS``.
+
+    Product partials use ``{svg:}`` / ``{icon:}`` (build-time sprite expand).
+    Canned mock responses cannot use sprite ``<use>`` (no sheet in the
+    swapped fragment), so they use ``{i:name}`` expanded at runtime from
+    ``window.__HM_ICONS__``. The map is *derived* from these tokens so a
+    drawer/button icon added to MOCK_HTMX cannot silently empty.
+    """
+    src = MOCK_HTMX if mock_src is None else mock_src
+    names = frozenset(_MOCK_I_RE.findall(src))
+    unknown = sorted(n for n in names if n not in ICONS)
+    if unknown:
+        raise ValueError(
+            "MOCK_HTMX uses unknown {i:} icon(s) "
+            f"{unknown} — add via icons/gen_registry.py or fix the token"
+        )
+    return names
+
+
+def build_mock_icon_map_js(names: frozenset[str] | None = None) -> str:
+    """JS preamble: ``window.__HM_ICONS__`` for mock-htmx ``{i:}`` expand."""
+    icon_names = sorted(mock_htmx_icon_names() if names is None else names)
+    parts = ["window.__HM_ICONS__ = {"]
+    for name in icon_names:
+        inner = ICONS[name].replace("'", "\\'")
+        parts.append(
+            f'\'{name}\':\'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
+            f'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+            f'stroke-linejoin="round">{inner}</svg>\','
+        )
+    parts.append("};\n")
+    return "".join(parts)
+
+
 MOCK_HTMX = """/* Minimal htmx4 mock — enough for the static gallery demos.
    Supports: hx-get (canned responses), hx-confirm -> htmx:confirm event,
    hx-boost no-op. NOT a real htmx; the point is that the SAME markup that
-   runs against a Dazzle server also demos statically here. */
+   runs against a Dazzle server also demos statically here.
+
+   Icons in canned HTML: use the i-token form only (NOT svg:/icon: tokens).
+   Runtime expand() looks up window.__HM_ICONS__, which build_site derives
+   from every i-token below — unknown names fail the build. Product
+   partials keep svg:/icon: tokens + sprite sheet. */
 (function () {
   "use strict";
   var RESPONSES = {
@@ -1460,8 +1502,13 @@ MOCK_HTMX = """/* Minimal htmx4 mock — enough for the static gallery demos.
     // card-label/value title stack, one KPI card per metric in auto-grid,
     // meta as card-label + primary text (not form-field+hint), alert role=alert.
     // Server returns the body only — not drawer chrome (open/focus stay host).
+    // Length is intentional: drawer__body must overflow so the gallery
+    // demonstrates independent panel scroll (host page stays put).
     "/mock/drawer/detail":
       '<div class="dz-stack" data-dz-gap="md">' +
+      '<p class="hm-demo-muted" style="margin:0">' +
+      "Scroll this panel — the page behind does not move. Header and footer stay pinned." +
+      "</p>" +
       '<div class="hm-demo-row" style="justify-content:space-between;align-items:flex-start;' +
       'gap:var(--space-sm);flex-wrap:wrap">' +
       "<div>" +
@@ -1493,18 +1540,54 @@ MOCK_HTMX = """/* Minimal htmx4 mock — enough for the static gallery demos.
       "<div>" +
       '<div class="dz-card-label">Primary contact</div>' +
       "<div>Maya Reyes · Operations</div>" +
+      "</div>" +
+      "<div>" +
+      '<div class="dz-card-label">Feeder</div>' +
+      "<div>N-14 · 33 kV · dual bay</div>" +
       "</div></div>" +
       '<div class="dz-alert" data-dz-tone="warning" role="alert">' +
       '<span class="dz-alert__icon">{i:triangle-alert}</span>' +
       '<div class="dz-alert__body">' +
       '<div class="dz-alert__title">Two open work orders</div>' +
       '<div class="dz-alert__description">' +
-      "Peek stays partial — Open full page navigates to the owned record URL." +
+      "Peek stays partial — Open full page navigates to the owned record URL. " +
+      "Expand widens this panel in place; it is not full page." +
       "</div></div></div>" +
       '<div class="hm-demo-row" style="gap:var(--space-sm);flex-wrap:wrap">' +
       '<button type="button" class="dz-button" data-dz-variant="outline">{i:clipboard-list} ' +
       "Work orders</button>" +
       '<button type="button" class="dz-button" data-dz-variant="ghost">{i:map-pin} Map</button>' +
+      "</div>" +
+      // Activity + notes: enough vertical mass that body overflow is visible
+      '<div class="dz-stack" data-dz-gap="sm">' +
+      '<div class="dz-card-label">Recent activity</div>' +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Today 09:14</div>' +
+      "<div>Load spike to 91% — auto-throttle engaged bay 2.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Yesterday</div>' +
+      "<div>WO-1842 assigned to field crew North · ETA Friday.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Mon 12 Jun</div>' +
+      "<div>Thermal scan complete — hotspot cleared on bushing B.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Fri 9 Jun</div>' +
+      "<div>SCADA heartbeat restored after firmware patch 3.2.1.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Thu 8 Jun</div>' +
+      "<div>Vegetation clearance permit filed for corridor C-4.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Wed 7 Jun</div>' +
+      "<div>Oil sample OK · moisture within band · next sample Q3.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Tue 6 Jun</div>' +
+      "<div>Relay coordination study uploaded by protection team.</div></div>" +
+      '<div class="dz-card dz-card-body"><div class="dz-card-label">Mon 5 Jun</div>' +
+      "<div>Access control badge audit — 2 visitors signed out late.</div></div>" +
+      "</div>" +
+      '<div class="dz-stack" data-dz-gap="sm">' +
+      '<div class="dz-card-label">Inspection notes</div>' +
+      "<div>Secondary containment dry. Ground grid resistance last measured at " +
+      "0.42 Ω (within site standard). Spare bushing stored in bay shed; key with " +
+      "Maya. Winter de-icing plan still draft — ops to confirm before October.</div>" +
+      "<div>Related feeders N-12 and N-16 share the same protection zone; a trip " +
+      "here can cascade under high load. Prefer staged switching for any planned " +
+      "outage longer than 90 minutes.</div>" +
+      "<div>End of peek fragment — if you can read this without scrolling the host " +
+      "page, independent body scroll is working.</div>" +
       "</div></div>",
 
     "/mock/shell/dashboard": '<div class="dz-stack" data-dz-gap="md"><h1>Dashboard</h1><div class="dz-auto-grid" style="--dz-grid-min: 10rem"><div class="dz-card dz-card-body"><div class="dz-card-label">Outstanding</div><div class="dz-card-value">£12,450</div></div><div class="dz-card dz-card-body"><div class="dz-card-label">Paid</div><div class="dz-card-value">£48,900</div></div></div></div>',
@@ -2223,16 +2306,10 @@ def build(out_dir: Path, prefix: str = DEFAULT_PREFIX) -> None:
     # the prefix to the controllers; the mock's canned markup carries the
     # namespace too, so reprefix it to match.
     controllers = "\n" + build_js(prefix)
-    # inline icon map for the mock htmx canned command results
-    icon_map = "window.__HM_ICONS__ = {"
-    for name in ("layout-dashboard", "settings", "receipt", "users", "triangle-alert"):
-        inner = ICONS[name].replace("'", "\\'")
-        icon_map += (
-            f'\'{name}\':\'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
-            f'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" '
-            f'stroke-linejoin="round">{inner}</svg>\','
-        )
-    icon_map += "};\n"
+    # Inline icon map for mock-htmx {i:name} expand — derived from MOCK_HTMX
+    # tokens so drawer/command/etc. cannot ship empty icons (hardcoded maps
+    # previously listed only the command palette set).
+    icon_map = build_mock_icon_map_js()
     (out_dir / "hatchi-maxchi.js").write_text(
         (apply_prefix(icon_map + MOCK_HTMX, prefix) + controllers).rstrip("\n") + "\n",
         encoding="utf-8",

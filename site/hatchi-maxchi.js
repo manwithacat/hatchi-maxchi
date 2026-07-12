@@ -1,8 +1,13 @@
-window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /> <rect width="7" height="5" x="14" y="3" rx="1" /> <rect width="7" height="9" x="14" y="12" rx="1" /> <rect width="7" height="5" x="3" y="16" rx="1" /></svg>','settings':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /></svg>','receipt':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V7" /> <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" /> <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></svg>','users':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /></svg>','triangle-alert':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /> <path d="M12 9v4" /> <path d="M12 17h.01" /></svg>',};
+window.__HM_ICONS__ = {'circle-check':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></svg>','clipboard-list':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /> <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /> <path d="M12 11h4" /> <path d="M12 16h4" /> <path d="M8 11h.01" /> <path d="M8 16h.01" /></svg>','layout-dashboard':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /> <rect width="7" height="5" x="14" y="3" rx="1" /> <rect width="7" height="9" x="14" y="12" rx="1" /> <rect width="7" height="5" x="3" y="16" rx="1" /></svg>','map-pin':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" /></svg>','receipt':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V7" /> <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8" /> <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></svg>','settings':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /></svg>','triangle-alert':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /> <path d="M12 9v4" /> <path d="M12 17h.01" /></svg>','users':'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /></svg>',};
 /* Minimal htmx4 mock — enough for the static gallery demos.
    Supports: hx-get (canned responses), hx-confirm -> htmx:confirm event,
    hx-boost no-op. NOT a real htmx; the point is that the SAME markup that
-   runs against a Dazzle server also demos statically here. */
+   runs against a Dazzle server also demos statically here.
+
+   Icons in canned HTML: use the i-token form only (NOT svg:/icon: tokens).
+   Runtime expand() looks up window.__HM_ICONS__, which build_site derives
+   from every i-token below — unknown names fail the build. Product
+   partials keep svg:/icon: tokens + sprite sheet. */
 (function () {
   "use strict";
   var RESPONSES = {
@@ -56,8 +61,13 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
     // card-label/value title stack, one KPI card per metric in auto-grid,
     // meta as card-label + primary text (not form-field+hint), alert role=alert.
     // Server returns the body only — not drawer chrome (open/focus stay host).
+    // Length is intentional: drawer__body must overflow so the gallery
+    // demonstrates independent panel scroll (host page stays put).
     "/mock/drawer/detail":
       '<div class="stack" data-gap="md">' +
+      '<p class="hm-demo-muted" style="margin:0">' +
+      "Scroll this panel — the page behind does not move. Header and footer stay pinned." +
+      "</p>" +
       '<div class="hm-demo-row" style="justify-content:space-between;align-items:flex-start;' +
       'gap:var(--space-sm);flex-wrap:wrap">' +
       "<div>" +
@@ -89,18 +99,54 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
       "<div>" +
       '<div class="card-label">Primary contact</div>' +
       "<div>Maya Reyes · Operations</div>" +
+      "</div>" +
+      "<div>" +
+      '<div class="card-label">Feeder</div>' +
+      "<div>N-14 · 33 kV · dual bay</div>" +
       "</div></div>" +
       '<div class="alert" data-tone="warning" role="alert">' +
       '<span class="alert__icon">{i:triangle-alert}</span>' +
       '<div class="alert__body">' +
       '<div class="alert__title">Two open work orders</div>' +
       '<div class="alert__description">' +
-      "Peek stays partial — Open full page navigates to the owned record URL." +
+      "Peek stays partial — Open full page navigates to the owned record URL. " +
+      "Expand widens this panel in place; it is not full page." +
       "</div></div></div>" +
       '<div class="hm-demo-row" style="gap:var(--space-sm);flex-wrap:wrap">' +
       '<button type="button" class="button" data-variant="outline">{i:clipboard-list} ' +
       "Work orders</button>" +
       '<button type="button" class="button" data-variant="ghost">{i:map-pin} Map</button>' +
+      "</div>" +
+      // Activity + notes: enough vertical mass that body overflow is visible
+      '<div class="stack" data-gap="sm">' +
+      '<div class="card-label">Recent activity</div>' +
+      '<div class="card card-body"><div class="card-label">Today 09:14</div>' +
+      "<div>Load spike to 91% — auto-throttle engaged bay 2.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Yesterday</div>' +
+      "<div>WO-1842 assigned to field crew North · ETA Friday.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Mon 12 Jun</div>' +
+      "<div>Thermal scan complete — hotspot cleared on bushing B.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Fri 9 Jun</div>' +
+      "<div>SCADA heartbeat restored after firmware patch 3.2.1.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Thu 8 Jun</div>' +
+      "<div>Vegetation clearance permit filed for corridor C-4.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Wed 7 Jun</div>' +
+      "<div>Oil sample OK · moisture within band · next sample Q3.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Tue 6 Jun</div>' +
+      "<div>Relay coordination study uploaded by protection team.</div></div>" +
+      '<div class="card card-body"><div class="card-label">Mon 5 Jun</div>' +
+      "<div>Access control badge audit — 2 visitors signed out late.</div></div>" +
+      "</div>" +
+      '<div class="stack" data-gap="sm">' +
+      '<div class="card-label">Inspection notes</div>' +
+      "<div>Secondary containment dry. Ground grid resistance last measured at " +
+      "0.42 Ω (within site standard). Spare bushing stored in bay shed; key with " +
+      "Maya. Winter de-icing plan still draft — ops to confirm before October.</div>" +
+      "<div>Related feeders N-12 and N-16 share the same protection zone; a trip " +
+      "here can cascade under high load. Prefer staged switching for any planned " +
+      "outage longer than 90 minutes.</div>" +
+      "<div>End of peek fragment — if you can read this without scrolling the host " +
+      "page, independent body scroll is working.</div>" +
       "</div></div>",
 
     "/mock/shell/dashboard": '<div class="stack" data-gap="md"><h1>Dashboard</h1><div class="auto-grid" style="--grid-min: 10rem"><div class="card card-body"><div class="card-label">Outstanding</div><div class="card-value">£12,450</div></div><div class="card card-body"><div class="card-label">Paid</div><div class="card-value">£48,900</div></div></div></div>',
@@ -895,18 +941,29 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
  * click is not also treated as a light-dismiss on closedby="any" (a
  * microtask is still too early in Chromium — open-and-instantly-close).
  *
- * initial focus: showModal focuses the first focusable (often the ✕
- * close). WebKit paints that as :focus-visible after a pointer open, so
- * the close control looks "active" until the user clicks away. After
- * open we settle focus on [autofocus] if present, else the dialog shell
- * (tabindex=-1, outline suppressed in CSS) so chrome is not lit until
- * the user Tabs. Esc / focus trap still work — focus remains inside.
+ * initial focus: showModal focuses the first focusable in the dialog —
+ * often header chrome (✕ close, Expand, …). WebKit paints that as
+ * :focus-visible after a pointer open, so the control looks "active"
+ * until the user clicks away. After open we ALWAYS settle focus on
+ * [autofocus] if present, else the dialog shell (tabindex=-1, outline
+ * suppressed in CSS) so *any* chrome control is not lit until the user
+ * Tabs. Do not special-case only close — a later header button becomes
+ * first focusable and reintroduces the same bug. Esc / focus trap still
+ * work — focus remains inside the dialog.
+ *
+ * panel width: Expand / Restore is a 2-state toggle (resting width ↔ xl),
+ * not a multi-step cycle. A unipolar "Widen" cycle lied on the last press
+ * (reset to default). Labels always name the next action. Separate job
+ * from "Open full page" (navigation to an owned URL).
  */
 (function () {
   "use strict";
 
-  var CLOSE_SEL =
-    ".drawer__close, .drawer__close, .dialog__close, .dialog__close";
+  var REST_WIDTH = "md";
+  var EXPANDED_WIDTH = "xl";
+  var EXPAND_SEL =
+    "[data-drawer-expand], [data-drawer-expand], " +
+    "[data-drawer-widen], [data-drawer-widen]";
 
   function openAttr(el) {
     return (
@@ -928,14 +985,9 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
     }
   }
 
-  function isCloseControl(el) {
-    return !!(el && el.closest && el.closest(CLOSE_SEL));
-  }
-
   /**
-   * After showModal, avoid leaving focus on the dismiss ✕ (looks active
-   * under WebKit :focus-visible). Honour [autofocus]; otherwise hold
-   * focus on the dialog shell.
+   * After pointer-driven showModal: never leave focus on header chrome.
+   * Honour [autofocus]; otherwise hold focus on the dialog shell.
    */
   function settleInitialFocus(dlg) {
     var auto = dlg.querySelector("[autofocus]");
@@ -943,23 +995,14 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
       focusQuiet(auto);
       return;
     }
-    var active = document.activeElement;
-    if (!active || !dlg.contains(active) || !isCloseControl(active)) {
-      // Already on a meaningful control (or dialog) — leave it.
-      if (active && dlg.contains(active) && active !== dlg) return;
-    }
     if (!dlg.hasAttribute("tabindex")) {
       dlg.setAttribute("tabindex", "-1");
     }
     focusQuiet(dlg);
   }
 
-  // Widen-in-place: cycle data-width on the host drawer (md→lg→xl→full→md).
-  // Separate job from "Open full page" (which is navigation to an owned URL).
-  var WIDTH_CYCLE = ["md", "lg", "xl", "full"];
-
   function widthAttr(dlg) {
-    return dlg.getAttribute("data-width") || dlg.getAttribute("data-width") || "md";
+    return dlg.getAttribute("data-width") || dlg.getAttribute("data-width") || REST_WIDTH;
   }
 
   function setWidth(dlg, w) {
@@ -967,18 +1010,62 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
     dlg.setAttribute("data-width", w); // gallery unprefixed dialect
   }
 
+  function isExpandedWidth(w) {
+    return w === EXPANDED_WIDTH || w === "full";
+  }
+
+  function expandControls(dlg) {
+    return dlg.querySelectorAll(EXPAND_SEL);
+  }
+
+  /** Label always describes the *next* action (honest after multi-state cycle). */
+  function syncExpandControl(btn, expanded) {
+    if (!btn) return;
+    btn.setAttribute("aria-pressed", expanded ? "true" : "false");
+    btn.setAttribute(
+      "aria-label",
+      expanded ? "Restore drawer panel to default width" : "Expand drawer panel"
+    );
+    // Text-only chrome (gallery); leave icon-only buttons to aria-label alone.
+    if (!btn.querySelector("svg, img, .icon, .icon")) {
+      btn.textContent = expanded ? "Restore" : "Expand";
+    }
+  }
+
+  function syncExpandControls(dlg) {
+    var expanded = isExpandedWidth(widthAttr(dlg));
+    var btns = expandControls(dlg);
+    for (var i = 0; i < btns.length; i++) {
+      syncExpandControl(btns[i], expanded);
+    }
+  }
+
+  function toggleExpand(dlg) {
+    var cur = widthAttr(dlg);
+    if (isExpandedWidth(cur)) {
+      var rest =
+        dlg.getAttribute("data-width-rest") ||
+        dlg.getAttribute("data-width-rest") ||
+        REST_WIDTH;
+      setWidth(dlg, rest);
+    } else {
+      // Remember resting width so Restore returns to author default (sm/md/lg).
+      dlg.setAttribute("data-width-rest", cur);
+      dlg.setAttribute("data-width-rest", cur);
+      setWidth(dlg, EXPANDED_WIDTH);
+    }
+    syncExpandControls(dlg);
+  }
+
   document.addEventListener("click", function (evt) {
-    var widen =
-      (evt.target.closest && evt.target.closest("[data-drawer-widen]")) ||
-      (evt.target.closest && evt.target.closest("[data-drawer-widen]"));
-    if (widen) {
+    var expandBtn =
+      evt.target.closest && evt.target.closest(EXPAND_SEL);
+    if (expandBtn) {
       var host =
-        widen.closest("dialog.drawer") || widen.closest("dialog.drawer");
+        expandBtn.closest("dialog.drawer") || expandBtn.closest("dialog.drawer");
       if (!host) return;
       evt.preventDefault();
-      var cur = widthAttr(host);
-      var i = WIDTH_CYCLE.indexOf(cur);
-      setWidth(host, WIDTH_CYCLE[i < 0 ? 0 : (i + 1) % WIDTH_CYCLE.length]);
+      toggleExpand(host);
       return;
     }
 
@@ -996,6 +1083,7 @@ window.__HM_ICONS__ = {'layout-dashboard':'<svg xmlns="http://www.w3.org/2000/sv
     // Macrotask: past closedby="any" handling for this click.
     setTimeout(function () {
       if (!dlg.open) dlg.showModal();
+      syncExpandControls(dlg);
       settleInitialFocus(dlg);
     }, 0);
   });
