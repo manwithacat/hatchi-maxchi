@@ -1460,28 +1460,60 @@ def test_tabs_switch_and_lazy_load(page) -> None:  # type: ignore[no-untyped-def
 def test_carousel_prev_next_and_dots_change_active_slide(page) -> None:  # type: ignore[no-untyped-def]
     """dz-carousel.js: next/prev/dots move data-active and aria-current.
 
-    The gallery used to ship inert prev/next (controller deferred) — no
-    visible state change on click. Demo must exercise the behaviour.
+    Demo uses mixed media (3 cats) + a hypermedia CTA slide. Controllers
+    must change visible slide state; media must letterbox without crop.
     """
     goto_part(page, "carousel")
     root = page.locator("#carousel [data-carousel], #carousel .carousel").first
     assert root.count() == 1
     slides = root.locator(".carousel__slide")
-    assert slides.count() == 3
+    assert slides.count() == 4
+    media = root.locator(".carousel__slide--media img")
+    assert media.count() == 3, "three cat SVGs with distinct intrinsic sizes"
+    # Wait for all media to decode (hidden slides still fetch without loading=lazy)
+    page.wait_for_function(
+        """() => [...document.querySelectorAll(
+          '#carousel .carousel__slide--media img'
+        )].every(img => img.complete && img.naturalWidth > 0)""",
+        timeout=5000,
+    )
+    dims = page.evaluate(
+        """() => {
+          const imgs = [...document.querySelectorAll(
+            '#carousel .carousel__slide--media img'
+          )];
+          return imgs.map(img => ({
+            w: Number(img.getAttribute('width')),
+            h: Number(img.getAttribute('height')),
+            naturalW: img.naturalWidth,
+            naturalH: img.naturalHeight,
+          }));
+        }"""
+    )
+    assert len(dims) == 3
+    assert dims[0]["w"] > dims[0]["h"], "slide 1 landscape"
+    assert dims[1]["h"] > dims[1]["w"], "slide 2 portrait"
+    assert dims[2]["w"] == dims[2]["h"], "slide 3 square"
+    assert all(d["naturalW"] > 0 for d in dims), f"media failed to load: {dims}"
 
-    def active_text() -> str:
+    def active_label() -> str:
         return page.evaluate(
             """() => {
-              const r = document.querySelector('#carousel [data-carousel], #carousel .carousel');
+              const r = document.querySelector(
+                '#carousel [data-carousel], #carousel .carousel'
+              );
               const a = r && r.querySelector('.carousel__slide[data-active]');
-              return a ? a.textContent.trim() : '';
+              if (!a) return '';
+              const img = a.querySelector('img');
+              if (img) return img.getAttribute('alt') || '';
+              return (a.textContent || '').trim().slice(0, 80);
             }"""
         )
 
     def index_attr() -> str | None:
         return root.get_attribute("data-carousel-index")
 
-    assert "Slide 1" in active_text()
+    assert "16 by 9" in active_label() or "Landscape" in active_label()
     assert index_attr() in (None, "0")
     prev = root.locator("[data-carousel-prev]")
     next_btn = root.locator("[data-carousel-next]")
@@ -1490,7 +1522,9 @@ def test_carousel_prev_next_and_dots_change_active_slide(page) -> None:  # type:
 
     next_btn.click()
     page.wait_for_timeout(100)
-    assert "Slide 2" in active_text(), f"next should show slide 2, got {active_text()!r}"
+    assert "3 by 4" in active_label() or "Portrait" in active_label(), (
+        f"next should show portrait cat, got {active_label()!r}"
+    )
     assert index_attr() == "1"
     assert not prev.is_disabled()
     dots = root.locator(".carousel__dot")
@@ -1499,15 +1533,24 @@ def test_carousel_prev_next_and_dots_change_active_slide(page) -> None:  # type:
 
     dots.nth(2).click()
     page.wait_for_timeout(100)
-    assert "Slide 3" in active_text()
+    assert "1 by 1" in active_label() or "Square" in active_label()
     assert index_attr() == "2"
+
+    # Hypermedia slide: HTML fragment + hx-get CTA (not image-only)
+    dots.nth(3).click()
+    page.wait_for_timeout(100)
+    assert index_attr() == "3"
     assert next_btn.is_disabled()
-    assert dots.nth(2).get_attribute("aria-current") == "true"
+    assert "Hypermedia" in active_label() or "Adopt" in active_label()
+    adopt = root.locator("button", has_text="Request visit")
+    assert adopt.count() == 1
+    adopt.click()
+    page.wait_for_timeout(200)
+    assert "Visit requested" in page.inner_text("#hm-carousel-adopt")
 
     prev.click()
     page.wait_for_timeout(100)
-    assert "Slide 2" in active_text()
-    assert index_attr() == "1"
+    assert index_attr() == "2"
     assert not next_btn.is_disabled()
 
 
@@ -2080,7 +2123,8 @@ def test_drawer_expand_restore_toggles_width_without_navigation(page) -> None:  
     """Expand/Restore is a 2-state chrome toggle — not full-page navigation.
 
     Labels name the next action; aria-pressed reflects expanded state.
-    Assert *computed* width change (attr-only gates miss CSS/media bugs).
+    Assert *computed* width after CSS width transition settles (Linux WebKit
+    mid-transition samples were flaking: restored measured wider than expanded).
     """
     goto_part(page, "drawer")
     # Ensure viewport is wide enough for md vs xl presets (min-width: 40rem)
@@ -2105,23 +2149,38 @@ def test_drawer_expand_restore_toggles_width_without_navigation(page) -> None:  
               const d = document.getElementById('hm-drawer-lazy');
               const r = d.getBoundingClientRect();
               return {
-                attr: d.getAttribute('data-width') || d.getAttribute('data-dz-width'),
+                attr: d.getAttribute('data-width') || d.getAttribute('data-dz-width') || 'md',
                 w: Math.round(r.width),
               };
             }"""
         )
 
-    before = _geom()
-    assert before["attr"] in (None, "md")
+    def _wait_settled(attr: str, *, min_w: float | None = None, max_w: float | None = None) -> dict:
+        """Wait until data-width matches and layout width is in band (post-transition)."""
+        page.wait_for_function(
+            """([want, minW, maxW]) => {
+              const d = document.getElementById('hm-drawer-lazy');
+              if (!d || !d.open) return false;
+              const a = d.getAttribute('data-width') || d.getAttribute('data-dz-width') || 'md';
+              if (a !== want) return false;
+              const w = d.getBoundingClientRect().width;
+              if (minW != null && w < minW) return false;
+              if (maxW != null && w > maxW) return false;
+              return true;
+            }""",
+            arg=[attr, min_w, max_w],
+            timeout=4000,
+        )
+        # One extra frame after the band check so WebKit finishes paint
+        page.wait_for_timeout(50)
+        return _geom()
+
+    before = _wait_settled("md", max_w=600)
     assert before["w"] > 100
 
-    # Real pointer (not only locator.click) — same path as a human
-    box = btn.bounding_box()
-    assert box is not None
-    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-    page.wait_for_timeout(200)
-    after = _geom()
-    assert after["attr"] == "xl", f"Expand should set xl, got {after['attr']!r}"
+    # locator.click is more reliable than raw mouse while the panel is animating
+    btn.click()
+    after = _wait_settled("xl", min_w=700)
     assert after["w"] > before["w"] + 80, (
         f"Expand must visibly widen the panel (before={before['w']} after={after['w']})"
     )
@@ -2131,12 +2190,8 @@ def test_drawer_expand_restore_toggles_width_without_navigation(page) -> None:  
     assert page.url.endswith("drawer.html") or "drawer" in page.url
     assert page.get_attribute("#hm-drawer-lazy", "open") is not None
 
-    box2 = btn.bounding_box()
-    assert box2 is not None
-    page.mouse.click(box2["x"] + box2["width"] / 2, box2["y"] + box2["height"] / 2)
-    page.wait_for_timeout(200)
-    restored = _geom()
-    assert restored["attr"] == "md", f"Restore should return to md, got {restored['attr']!r}"
+    btn.click()
+    restored = _wait_settled("md", max_w=600)
     assert restored["w"] < after["w"] - 80, (
         f"Restore must visibly narrow (expanded={after['w']} restored={restored['w']})"
     )
