@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 80 |
+| Modules | 82 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -54,6 +54,7 @@ blast radius (who embeds / refuses this part).
 | `heading` | `heading` | `.dz-heading` | .dz-heading[] | — |
 | `heatmap` | `heatmap` | `[data-dz-heatmap]` | [data-dz-heatmap][data-dz-heatmap=present] | Heatmap(columns:list[str]:opt; empty_message:str:opt; rows:list[HeatmapRow]:opt; thresholds:list[float]:opt; total:int:opt); HeatmapRow(cells:list[float]:opt; label:str:req) |
 | `histogram` | `histogram` | `[data-dz-histogram]` | [data-dz-histogram][data-dz-histogram=present] | Histogram(bins:list[HistogramBin]:opt; empty_message:str:opt; label:str:opt; svg_html:str:opt); HistogramBin(count:int:opt; high:float:opt; label:str:req; low:float:opt) |
+| `icon` | `icon` | `.dz-icon` | .dz-icon[] | — |
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
 | `list_region` | `list-region` | `[data-dz-list-region]` | [data-dz-list-region][data-dz-list-region=present] | ListRegion(body_html:str:opt) |
 | `master_detail` | `master-detail` | `[data-dz-master-detail]` | [data-dz-master-detail][]; [data-dz-master-detail-list-body][]; [data-dz-master-detail-detail-body][] | — |
@@ -86,6 +87,7 @@ blast radius (who embeds / refuses this part).
 | `tabs` | `tabs` | `[data-dz-tabs]` | [data-dz-tabs][]; [data-dz-tab-target][data-dz-tab-target=present] | — |
 | `tags` | `tags` | `[data-dz-tags]` | [data-dz-tags][name=present] | TagsField(field_id:str:req; label:str:req; name:str:req; placeholder:str:opt; tags:list[str]:opt) |
 | `task_inbox` | `task-inbox` | `[data-dz-task-inbox]` | [data-dz-task-inbox][data-dz-task-inbox=present] | TaskInbox(body_html:str:opt; region_name:str:opt) |
+| `text` | `text` | `.dz-text` | .dz-text[] | — |
 | `time_series` | `time-series` | `[data-dz-time-series]` | [data-dz-time-series][data-dz-time-series=present] | TimeSeries(empty_message:str:opt; label:str:opt; legend_html:str:opt; peak_display:str:opt; points:list[TimeSeriesPoint]:opt; series:list[TimeSeriesLayer]:opt; svg_html:str:opt; view:Literal:opt); TimeSeriesLayer(name:str:req; points:list[TimeSeriesPoint]:opt); TimeSeriesPoint(label:str:req; value:float:opt) |
 | `timeline` | `timeline` | `[data-dz-timeline-item]` | [data-dz-timeline-item][data-dz-timeline-item=present] | TimelineEvent(bullet_html:str:opt; date_label:str:opt; fields_html:str:opt; title:str:req) |
 | `toolbar` | `toolbar` | `.dz-toolbar` | .dz-toolbar[] | — |
