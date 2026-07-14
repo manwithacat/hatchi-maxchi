@@ -3004,6 +3004,8 @@ def select(source: str, id: str) -> str:
             '<nav class="dz-breadcrumb" aria-label="Breadcrumb"><ol>'
             '<li><a href="#">Home</a></li><li><a href="#">Invoices</a></li>'
             '<li aria-current="page">INV-0042</li></ol></nav>',
+            notes="Dual-lock root .dz-breadcrumb (HMC-135).",
+            contracts=("contracts/breadcrumb.py",),
         ),
         Hyperpart(
             "accordion",
@@ -3429,8 +3431,10 @@ def select(source: str, id: str) -> str:
             "inner <code>min()</code> stops overflow when the container is "
             "narrower than the minimum (the classic auto-fit footgun). "
             "<code>--dz-grid-min</code> is a PUBLIC knob; gap rides "
-            "<code>data-dz-gap</code> as on stack.",
+            "<code>data-dz-gap</code> as on stack. Dual-lock root "
+            ".dz-auto-grid (HMC-136).",
             tags=("layout",),
+            contracts=("contracts/auto_grid.py",),
         ),
         Hyperpart(
             "center",
