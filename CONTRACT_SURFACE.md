@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 129 |
+| Modules | 133 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -70,6 +70,7 @@ blast radius (who embeds / refuses this part).
 | `grid` | `grid` | `[data-dz-grid]` | — | — |
 | `grid_cols` | `grid-cols` | `[data-dz-grid]` | [data-dz-grid-col-toggle][data-dz-grid-col-toggle=present]; [data-dz-col][data-dz-col=present]; [data-dz-grid-cols-reset][] | — |
 | `grid_edit` | `grid-edit` | `[data-dz-grid][data-dz-grid-edit-url]` | [data-dz-grid-edit][data-dz-edit-kind=one_of:text\|date\|bool\|select, data-dz-edit-label=present, data-dz-edit-options=json_pairs(when:data-dz-edit-kind=select), data-dz-edit-value=present] | GridEditCell(col:str:req; kind:Literal:req; label:str:req; options:list[tuple[str,str]]\|None:opt; value:str:req) |
+| `grid_list` | `grid_list` | `.dz-grid-list` | .dz-grid-list[] | — |
 | `grid_region` | `grid-region` | `[data-dz-grid-region]` | [data-dz-grid-region][data-dz-grid-region=present] | GridRegion(body_html:str:opt) |
 | `grid_resize` | `grid-resize` | `[data-dz-grid]` | [data-dz-grid-resize][data-dz-grid-resize=present]; col[data-dz-col], [data-dz-col][data-dz-col=present] | — |
 | `heading` | `heading` | `.dz-heading` | .dz-heading[] | — |
@@ -79,6 +80,7 @@ blast radius (who embeds / refuses this part).
 | `icon` | `icon` | `.dz-icon` | .dz-icon[] | — |
 | `inline_edit` | `inline-edit` | `.dz-inline-edit` | .dz-inline-edit[] | — |
 | `interactive` | `interactive` | `.dz-interactive` | .dz-interactive[] | — |
+| `item` | `item` | `.dz-item` | .dz-item[] | — |
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
 | `kanban_board` | `kanban-board` | `.dz-kanban` | .dz-kanban[] | — |
 | `kanban_region` | `kanban-region` | `.dz-kanban-board` | .dz-kanban-board[] | — |
@@ -86,10 +88,12 @@ blast radius (who embeds / refuses this part).
 | `layout_grid` | `layout-grid` | `.dz-grid` | .dz-grid[] | — |
 | `link` | `link` | `.dz-link` | .dz-link[] | — |
 | `list_region` | `list-region` | `[data-dz-list-region]` | [data-dz-list-region][data-dz-list-region=present] | ListRegion(body_html:str:opt) |
+| `marker` | `marker` | `.dz-marker` | .dz-marker[] | — |
 | `master_detail` | `master-detail` | `[data-dz-master-detail]` | [data-dz-master-detail][]; [data-dz-master-detail-list-body][]; [data-dz-master-detail-detail-body][] | — |
 | `menu` | `menu` | `details.dz-menu, .dz-menu` | details.dz-menu, .dz-menu[] | — |
 | `menubar` | `menubar` | `[data-dz-menubar]` | [data-dz-menubar][data-dz-menubar=present] | — |
 | `message` | `message` | `.dz-message` | .dz-message[] | — |
+| `message_scroller` | `message_scroller` | `.dz-message-scroller` | .dz-message-scroller[] | — |
 | `metrics` | `metrics` | `[data-dz-metric-key]` | [data-dz-metric-key][data-dz-metric-key=present] | MetricTile(delta_direction:Literal:opt; delta_pct:float:opt; delta_period_label:str:opt; delta_sentiment:Literal:opt; delta_value:str:opt; label:str:req; metric_key:str:opt; tone:Literal:opt; value:str:req) |
 | `metrics_grid` | `metrics-grid` | `.dz-metrics-grid` | .dz-metrics-grid[] | — |
 | `money` | `money` | `[data-dz-money]` | [data-dz-money][data-dz-currency=present, data-dz-scale=present] | MoneyField(currency:str:opt; field_id:str:opt; major_display:str:opt; minor_value:int:opt; name:str:req; scale:int:opt) |

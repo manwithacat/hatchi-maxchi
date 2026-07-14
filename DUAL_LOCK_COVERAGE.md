@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 129 |
+| Contract modules | 133 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 87 |
+| Dual-lock DOM-only | 91 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 0 |
 
@@ -79,6 +79,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `grid` | `grid.py` | `dz-grid.js` | yes | no | no | **DOM-only** |
 | `grid_cols` | `grid_cols.py` | `dz-grid-cols.js` | yes | no | no | **DOM-only** |
 | `grid_edit` | `grid_edit.py` | `dz-grid-edit.js` | yes | yes | yes | **schema+DOM** |
+| `grid_list` | `grid_list.py` | `—` | yes | no | no | **DOM-only** |
 | `grid_region` | `grid_region.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `grid_resize` | `grid_resize.py` | `dz-grid-resize.js` | yes | no | no | **DOM-only** |
 | `heading` | `heading.py` | `—` | yes | no | no | **DOM-only** |
@@ -88,6 +89,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `icon` | `icon.py` | `—` | yes | no | no | **DOM-only** |
 | `inline_edit` | `inline_edit.py` | `—` | yes | no | no | **DOM-only** |
 | `interactive` | `interactive.py` | `—` | yes | no | no | **DOM-only** |
+| `item` | `item.py` | `—` | yes | no | no | **DOM-only** |
 | `kanban` | `kanban.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `kanban_board` | `kanban_board.py` | `—` | yes | no | no | **DOM-only** |
 | `kanban_region` | `kanban_region.py` | `—` | yes | no | no | **DOM-only** |
@@ -95,10 +97,12 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `layout_grid` | `layout_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `link` | `link.py` | `—` | yes | no | no | **DOM-only** |
 | `list_region` | `list_region.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `marker` | `marker.py` | `—` | yes | no | no | **DOM-only** |
 | `master_detail` | `master_detail.py` | `dz-master-detail.js` | yes | no | no | **DOM-only** |
 | `menu` | `menu.py` | `—` | yes | no | no | **DOM-only** |
 | `menubar` | `menubar.py` | `dz-menubar.js` | yes | no | no | **DOM-only** |
 | `message` | `message.py` | `—` | yes | no | no | **DOM-only** |
+| `message_scroller` | `message_scroller.py` | `—` | yes | no | no | **DOM-only** |
 | `metrics` | `metrics.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `metrics_grid` | `metrics_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `money` | `money.py` | `dz-money.js` | yes | yes | yes | **schema+DOM** |

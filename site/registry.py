@@ -2497,9 +2497,10 @@ def select(source: str, id: str) -> str:
             '<button type="button" class="dz-button" data-dz-variant="ghost" '
             'data-dz-size="sm">View</button></div></div></div>',
             notes="PLACEHOLDER — shadcn parity (HMC-033). Flex row anatomy only; "
-            "no controller. Actions stop at product buttons. Dual-lock when a "
-            "stable Dazzle list-row path needs it.",
+            "no controller. Actions stop at product buttons. Dual-lock root "
+            ".dz-item (HMC-145).",
             tags=("data", "layout"),
+            contracts=("contracts/item.py",),
         ),
         Hyperpart(
             "hover-card",
@@ -2900,8 +2901,14 @@ def select(source: str, id: str) -> str:
             notes="PLACEHOLDER — shadcn parity (HMC-042). "
             "<code>role=log</code> + <code>aria-live=polite</code> for "
             "assistive updates. Auto-scroll-to-bottom controller deferred; "
-            "prefer append-at-end + optional host scrollIntoView.",
+            "prefer append-at-end + optional host scrollIntoView. Dual-lock "
+            "root .dz-message-scroller (HMC-147).",
             tags=("media", "chat", "interactive"),
+            contracts=(
+                "contracts/message_scroller.py",
+                "contracts/message.py",
+                "contracts/bubble.py",
+            ),
         ),
         Hyperpart(
             "navigation-menu",
@@ -3007,8 +3014,9 @@ def select(source: str, id: str) -> str:
             "</div>",
             notes="PLACEHOLDER — shadcn parity (HMC-043). No map SDK. "
             "Position with host CSS (absolute over a map/plan). Tones via "
-            "<code>data-dz-tone</code>.",
+            "<code>data-dz-tone</code>. Dual-lock root .dz-marker (HMC-146).",
             tags=("media",),
+            contracts=("contracts/marker.py",),
         ),
         # ── Navigation / Data ────────────────────────────────────────────
         Hyperpart(
@@ -4345,8 +4353,10 @@ def select(source: str, id: str) -> str:
             "(1 column, then 2 at 40rem, 3 at 64rem). The "
             "<code>is-clickable</code> hover/cursor affordance is styled but "
             "currently a LEGACY reserve — the substrate grid emitter does not "
-            "yet wire cell drill URLs (follow-up on the Dazzle side).",
+            "yet wire cell drill URLs (follow-up on the Dazzle side). Dual-lock "
+            "root .dz-grid-list (HMC-144).",
             tags=("data",),
+            contracts=("contracts/grid_list.py",),
         ),
         Hyperpart(
             "list-region",
