@@ -1978,9 +1978,10 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
             "error/success alerts toggle via the native <code>hidden</code> "
             "attribute on stable ids. The code input reserves letter-spacing for six "
             "digits. Wrap full pages in <code>dz-auth-page</code> for the "
-            "centered layout.",
+            "centered layout. Dual-lock root .dz-auth-card (HMC-148).",
             tags=("forms",),
             composes=("button", "badge"),
+            contracts=("contracts/two_factor.py",),
         ),
         Hyperpart(
             "search-select",
@@ -3162,6 +3163,8 @@ def select(source: str, id: str) -> str:
             '<div class="hm-demo-row">'
             '<span class="dz-avatar-group"><span class="dz-avatar">JD</span><span class="dz-avatar">AK</span><span class="dz-avatar">+3</span></span>'
             '<span class="dz-avatar" data-dz-size="lg">HM</span></div>',
+            notes="Dual-lock root .dz-avatar (HMC-149).",
+            contracts=("contracts/avatar.py",),
         ),
         Hyperpart(
             "progress",
