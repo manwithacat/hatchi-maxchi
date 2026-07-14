@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 115 |
+| Contract modules | 117 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 73 |
+| Dual-lock DOM-only | 75 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 0 |
 
@@ -124,12 +124,14 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `status_list_region` | `status_list_region.py` | `—` | yes | no | no | **DOM-only** |
 | `submit` | `submit.py` | `—` | yes | no | no | **DOM-only** |
 | `surface` | `surface.py` | `—` | yes | no | no | **DOM-only** |
+| `switch` | `switch.py` | `—` | yes | no | no | **DOM-only** |
 | `tabs` | `tabs.py` | `dz-tabs.js` | yes | no | no | **DOM-only** |
 | `tags` | `tags.py` | `dz-tags.js` | yes | yes | yes | **schema+DOM** |
 | `task_inbox` | `task_inbox.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `text` | `text.py` | `—` | yes | no | no | **DOM-only** |
 | `time_series` | `time_series.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `timeline` | `timeline.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `toggle` | `toggle.py` | `—` | yes | no | no | **DOM-only** |
 | `toolbar` | `toolbar.py` | `—` | yes | no | no | **DOM-only** |
 | `topbar` | `topbar.py` | `—` | yes | no | no | **DOM-only** |
 | `tree` | `tree.py` | `—` | yes | yes | yes | **schema+DOM** |
