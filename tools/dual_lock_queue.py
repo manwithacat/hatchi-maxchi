@@ -68,6 +68,9 @@ _EMIT_TO_STEM: dict[str, str] = {
     "_emit_list_filter_bar": "filter_bar",
     "_emit_skip_link": "skip_link",
     "_emit_topbar": "topbar",
+    "_emit_sidebar": "sidebar",
+    "_emit_related_cards": "related_group",
+    "_emit_related_files": "related_group",
 }
 
 
