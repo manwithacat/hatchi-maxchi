@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 136 |
+| Modules | 140 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -86,6 +86,7 @@ blast radius (who embeds / refuses this part).
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
 | `kanban_board` | `kanban-board` | `.dz-kanban` | .dz-kanban[] | — |
 | `kanban_region` | `kanban-region` | `.dz-kanban-board` | .dz-kanban-board[] | — |
+| `kbd` | `kbd` | `.dz-kbd` | .dz-kbd[] | — |
 | `kpi` | `kpi` | `.dz-kpi` | .dz-kpi[] | — |
 | `layout_grid` | `layout-grid` | `.dz-grid` | .dz-grid[] | — |
 | `link` | `link` | `.dz-link` | .dz-link[] | — |
@@ -122,6 +123,7 @@ blast radius (who embeds / refuses this part).
 | `search_select` | `search-select` | `[data-dz-widget="search_select"]` | [data-dz-widget="search_select"][] | SearchResultRow(id:str:req; media_html:str:opt; name:str:req; results_target:str:req; secondary:str:opt; select_url:str:req); SearchSelectShell(blur_grace_ms:int:opt; confirm_hold_ms:int:opt; debounce_ms:int:opt; field_id:str:opt; field_name:str:req; initial_label:str:opt; initial_value:str:opt; input_id:str:opt; placeholder:str:opt; prompt:str:opt; results_id:str:opt; search_url:str:req) |
 | `separator` | `separator` | `.dz-separator, .dz-separator--vertical` | .dz-separator, .dz-separator--vertical[] | — |
 | `sidebar` | `sidebar` | `.dz-sidebar` | .dz-sidebar[] | — |
+| `sidebar_layout` | `sidebar_layout` | `.dz-sidebar-layout` | .dz-sidebar-layout[] | — |
 | `skeleton` | `skeleton` | `[data-dz-skeleton]` | [data-dz-skeleton][data-dz-skeleton=present] | Skeleton(body_html:str:opt; lines:int:opt) |
 | `skip_link` | `skip-link` | `.dz-skip-link` | .dz-skip-link[] | — |
 | `slider` | `slider` | `[data-dz-slider]` | [data-dz-slider][]; [data-dz-range-value][] | — |
@@ -141,7 +143,9 @@ blast radius (who embeds / refuses this part).
 | `time_series` | `time-series` | `[data-dz-time-series]` | [data-dz-time-series][data-dz-time-series=present] | TimeSeries(empty_message:str:opt; label:str:opt; legend_html:str:opt; peak_display:str:opt; points:list[TimeSeriesPoint]:opt; series:list[TimeSeriesLayer]:opt; svg_html:str:opt; view:Literal:opt); TimeSeriesLayer(name:str:req; points:list[TimeSeriesPoint]:opt); TimeSeriesPoint(label:str:req; value:float:opt) |
 | `timeline` | `timeline` | `[data-dz-timeline-item]` | [data-dz-timeline-item][data-dz-timeline-item=present] | TimelineEvent(bullet_html:str:opt; date_label:str:opt; fields_html:str:opt; title:str:req) |
 | `toggle` | `toggle` | `[data-dz-toggle]` | [data-dz-toggle][data-dz-toggle=present] | — |
+| `toggle_group` | `toggle_group` | `.dz-toggle-group` | .dz-toggle-group[] | — |
 | `toolbar` | `toolbar` | `.dz-toolbar` | .dz-toolbar[] | — |
+| `tooltip` | `tooltip` | `[data-dz-tooltip]` | [data-dz-tooltip][data-dz-tooltip=present] | — |
 | `topbar` | `topbar` | `.dz-topbar` | .dz-topbar[] | — |
 | `tree` | `tree` | `[data-dz-tree]` | [data-dz-tree][data-dz-tree=present] | Tree(body_html:str:opt) |
 | `two_factor` | `two_factor` | `.dz-auth-card` | .dz-auth-card[] | — |

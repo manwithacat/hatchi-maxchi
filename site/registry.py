@@ -1085,6 +1085,8 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
             "CSS-only visual hint (`data-dz-tooltip`) — zero JS. A hint, not an "
             "accessible tooltip: keep it non-critical (no touch/SR/keyboard path).",
             '<button class="dz-button" data-dz-variant="outline" data-dz-tooltip="Saved 2 minutes ago">Hover me</button>',
+            notes="Dual-lock root [data-dz-tooltip] (HMC-154).",
+            contracts=("contracts/tooltip.py",),
         ),
         Hyperpart(
             "dialog",
@@ -2366,6 +2368,8 @@ def select(source: str, id: str) -> str:
             '<label><input type="radio" name="hm-view" checked><span>{icon:list} List</span></label>'
             '<label><input type="radio" name="hm-view"><span>{icon:kanban} Board</span></label>'
             '<label><input type="radio" name="hm-view"><span>{icon:calendar} Calendar</span></label></fieldset>',
+            notes="Dual-lock root .dz-toggle-group (HMC-153).",
+            contracts=("contracts/toggle_group.py",),
         ),
         Hyperpart(
             "switch",
@@ -2426,8 +2430,10 @@ def select(source: str, id: str) -> str:
             "<strong>spatially secondary</strong> — layout roles "
             "<em>adjacent</em> (flex gap next to a label) vs <em>trailing</em> "
             "(row end via <code>margin-inline-start: auto</code>). Not disclosure "
-            "iconography. Styles in <code>hm-core.css</code>; pure presentation.",
+            "iconography. Styles in <code>hm-core.css</code>; pure presentation. "
+            "Dual-lock root .dz-kbd (HMC-151).",
             tags=("docs",),
+            contracts=("contracts/kbd.py",),
             guidance=Guidance(
                 seams=(
                     '`<kbd class="dz-kbd">` — always the house chip, never bare Unicode',
@@ -3441,8 +3447,10 @@ def select(source: str, id: str) -> str:
             "when the content can't hold that minimum on the line, it wraps to a "
             'full-width row. <code>data-dz-side="end"</code> puts the side '
             "after the content. No media query: the breakpoint is the CONTENT'S "
-            "minimum, so the same markup works in a page, a card, or a drawer.",
+            "minimum, so the same markup works in a page, a card, or a drawer. "
+            "Dual-lock root .dz-sidebar-layout (HMC-152).",
             tags=("layout",),
+            contracts=("contracts/sidebar_layout.py",),
         ),
         Hyperpart(
             "auto-grid",

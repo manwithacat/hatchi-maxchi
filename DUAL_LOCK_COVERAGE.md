@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 136 |
+| Contract modules | 140 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 94 |
+| Dual-lock DOM-only | 98 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 0 |
 
@@ -95,6 +95,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `kanban` | `kanban.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `kanban_board` | `kanban_board.py` | `—` | yes | no | no | **DOM-only** |
 | `kanban_region` | `kanban_region.py` | `—` | yes | no | no | **DOM-only** |
+| `kbd` | `kbd.py` | `—` | yes | no | no | **DOM-only** |
 | `kpi` | `kpi.py` | `—` | yes | no | no | **DOM-only** |
 | `layout_grid` | `layout_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `link` | `link.py` | `—` | yes | no | no | **DOM-only** |
@@ -131,6 +132,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `search_select` | `search_select.py` | `dz-search-select.js` | yes | yes | yes | **schema+DOM** |
 | `separator` | `separator.py` | `—` | yes | no | no | **DOM-only** |
 | `sidebar` | `sidebar.py` | `—` | yes | no | no | **DOM-only** |
+| `sidebar_layout` | `sidebar_layout.py` | `—` | yes | no | no | **DOM-only** |
 | `skeleton` | `skeleton.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `skip_link` | `skip_link.py` | `—` | yes | no | no | **DOM-only** |
 | `slider` | `slider.py` | `dz-slider.js` | yes | no | no | **DOM-only** |
@@ -150,7 +152,9 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `time_series` | `time_series.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `timeline` | `timeline.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `toggle` | `toggle.py` | `—` | yes | no | no | **DOM-only** |
+| `toggle_group` | `toggle_group.py` | `—` | yes | no | no | **DOM-only** |
 | `toolbar` | `toolbar.py` | `—` | yes | no | no | **DOM-only** |
+| `tooltip` | `tooltip.py` | `—` | yes | no | no | **DOM-only** |
 | `topbar` | `topbar.py` | `—` | yes | no | no | **DOM-only** |
 | `tree` | `tree.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `two_factor` | `two_factor.py` | `—` | yes | no | no | **DOM-only** |
