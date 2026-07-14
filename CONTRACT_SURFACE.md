@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 111 |
+| Modules | 113 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -70,6 +70,7 @@ blast radius (who embeds / refuses this part).
 | `interactive` | `interactive` | `.dz-interactive` | .dz-interactive[] | — |
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
 | `kanban_board` | `kanban-board` | `.dz-kanban` | .dz-kanban[] | — |
+| `kanban_region` | `kanban-region` | `.dz-kanban-board` | .dz-kanban-board[] | — |
 | `kpi` | `kpi` | `.dz-kpi` | .dz-kpi[] | — |
 | `layout_grid` | `layout-grid` | `.dz-grid` | .dz-grid[] | — |
 | `link` | `link` | `.dz-link` | .dz-link[] | — |
@@ -109,6 +110,7 @@ blast radius (who embeds / refuses this part).
 | `split` | `split` | `.dz-split` | .dz-split[] | — |
 | `stack` | `stack` | `.dz-stack` | .dz-stack[] | — |
 | `status_list` | `status-list` | `[data-dz-status-entry]` | [data-dz-status-entry][data-dz-state=one_of:neutral\|positive\|warning\|destructive\|accent, data-dz-status-entry=present] | StatusListEntry(caption:str:opt; icon_html:str:opt; state:Literal:opt; title:str:req) |
+| `status_list_region` | `status-list-region` | `.dz-status-list-region` | .dz-status-list-region[] | — |
 | `submit` | `submit` | `.dz-submit` | .dz-submit[] | — |
 | `surface` | `surface` | `.dz-surface` | .dz-surface[] | — |
 | `tabs` | `tabs` | `[data-dz-tabs]` | [data-dz-tabs][]; [data-dz-tab-target][data-dz-tab-target=present] | — |
