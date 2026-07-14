@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 97 |
+| Modules | 100 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -32,6 +32,7 @@ blast radius (who embeds / refuses this part).
 | `code` | `code` | `[data-dz-code]` | [data-dz-code][data-dz-code=present]; [data-dz-code-copy][data-dz-code-copy=present] | — |
 | `cohort_strip` | `cohort-strip` | `[data-dz-cohort-strip]` | [data-dz-cohort-strip][data-dz-cohort-strip=present] | CohortStrip(body_html:str:opt; region_name:str:opt) |
 | `color` | `color` | `[data-dz-color-group]` | [data-dz-color-group][] | — |
+| `column_visibility_menu` | `column-visibility-menu` | `.dz-table-col-menu` | .dz-table-col-menu[] | — |
 | `combobox` | `combobox` | `[data-dz-combobox]` | [data-dz-combobox][name=present] | ComboboxField(field_id:str:req; label:str:req; name:str:req; options:list[ComboboxOption]:req; placeholder:str:opt; selected:str:opt); ComboboxOption(label:str:req; value:str:req) |
 | `command` | `command` | `[data-dz-command]` | [data-dz-command][] | — |
 | `confirm` | `confirm` | `[hx-confirm]` | [hx-confirm][hx-confirm=present] | — |
@@ -72,6 +73,7 @@ blast radius (who embeds / refuses this part).
 | `menu` | `menu` | `details.dz-menu, .dz-menu` | details.dz-menu, .dz-menu[] | — |
 | `menubar` | `menubar` | `[data-dz-menubar]` | [data-dz-menubar][data-dz-menubar=present] | — |
 | `metrics` | `metrics` | `[data-dz-metric-key]` | [data-dz-metric-key][data-dz-metric-key=present] | MetricTile(delta_direction:Literal:opt; delta_pct:float:opt; delta_period_label:str:opt; delta_sentiment:Literal:opt; delta_value:str:opt; label:str:req; metric_key:str:opt; tone:Literal:opt; value:str:req) |
+| `metrics_grid` | `metrics-grid` | `.dz-metrics-grid` | .dz-metrics-grid[] | — |
 | `money` | `money` | `[data-dz-money]` | [data-dz-money][data-dz-currency=present, data-dz-scale=present] | MoneyField(currency:str:opt; field_id:str:opt; major_display:str:opt; minor_value:int:opt; name:str:req; scale:int:opt) |
 | `navigation_menu` | `navigation-menu` | `[data-dz-navigation-menu]` | [data-dz-navigation-menu][data-dz-navigation-menu=present] | — |
 | `pagination` | `pagination` | `[data-dz-pagination]` | [data-dz-pagination][data-dz-grid-pagination=present, data-dz-grid-total=present, data-dz-pagination=present] | Pagination(pages_html:str:opt; rows_label:str:opt; total:int:opt) |
@@ -93,6 +95,7 @@ blast radius (who embeds / refuses this part).
 | `skeleton` | `skeleton` | `[data-dz-skeleton]` | [data-dz-skeleton][data-dz-skeleton=present] | Skeleton(body_html:str:opt; lines:int:opt) |
 | `skip_link` | `skip-link` | `.dz-skip-link` | .dz-skip-link[] | — |
 | `slider` | `slider` | `[data-dz-slider]` | [data-dz-slider][]; [data-dz-range-value][] | — |
+| `sort_header` | `sort-header` | `.dz-list-sort-link` | .dz-list-sort-link[] | — |
 | `sparkline` | `sparkline` | `[data-dz-sparkline]` | [data-dz-sparkline][data-dz-sparkline=present] | Sparkline(empty_message:str:opt; points:list[tuple[str,float]]:opt) |
 | `split` | `split` | `.dz-split` | .dz-split[] | — |
 | `stack` | `stack` | `.dz-stack` | .dz-stack[] | — |

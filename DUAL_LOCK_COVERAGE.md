@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 97 |
+| Contract modules | 100 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 51 |
+| Dual-lock DOM-only | 54 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 4 |
 
@@ -41,6 +41,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `code` | `code.py` | `dz-code.js` | yes | no | no | **deferred** |
 | `cohort_strip` | `cohort_strip.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `color` | `color.py` | `dz-color.js` | yes | no | no | **DOM-only** |
+| `column_visibility_menu` | `column_visibility_menu.py` | `—` | yes | no | no | **DOM-only** |
 | `combobox` | `combobox.py` | `dz-combobox.js` | yes | yes | yes | **schema+DOM** |
 | `command` | `command.py` | `dz-command.js` | yes | no | no | **DOM-only** |
 | `confirm` | `confirm.py` | `dz-confirm.js` | yes | no | no | **DOM-only** |
@@ -81,6 +82,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `menu` | `menu.py` | `—` | yes | no | no | **DOM-only** |
 | `menubar` | `menubar.py` | `dz-menubar.js` | yes | no | no | **none** |
 | `metrics` | `metrics.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `metrics_grid` | `metrics_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `money` | `money.py` | `dz-money.js` | yes | yes | yes | **schema+DOM** |
 | `navigation_menu` | `navigation_menu.py` | `dz-navigation-menu.js` | yes | no | no | **none** |
 | `pagination` | `pagination.py` | `—` | yes | yes | yes | **schema+DOM** |
@@ -102,6 +104,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `skeleton` | `skeleton.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `skip_link` | `skip_link.py` | `—` | yes | no | no | **DOM-only** |
 | `slider` | `slider.py` | `dz-slider.js` | yes | no | no | **DOM-only** |
+| `sort_header` | `sort_header.py` | `—` | yes | no | no | **DOM-only** |
 | `sparkline` | `sparkline.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `split` | `split.py` | `—` | yes | no | no | **DOM-only** |
 | `stack` | `stack.py` | `—` | yes | no | no | **DOM-only** |
