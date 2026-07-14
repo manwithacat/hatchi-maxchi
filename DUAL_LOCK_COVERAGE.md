@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 92 |
+| Contract modules | 94 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 46 |
+| Dual-lock DOM-only | 48 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 4 |
 
@@ -53,6 +53,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `drawer` | `drawer.py` | `—` | yes | no | no | **DOM-only** |
 | `empty_state` | `empty_state.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `entity_card` | `entity_card.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `file_upload` | `file_upload.py` | `—` | yes | no | no | **DOM-only** |
 | `filter_bar` | `filter_bar.py` | `—` | yes | no | no | **DOM-only** |
 | `form_field` | `form_field.py` | `—` | yes | no | no | **DOM-only** |
 | `form_section` | `form_section.py` | `—` | yes | no | no | **DOM-only** |
@@ -71,6 +72,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `inline_edit` | `inline_edit.py` | `—` | yes | no | no | **DOM-only** |
 | `interactive` | `interactive.py` | `—` | yes | no | no | **DOM-only** |
 | `kanban` | `kanban.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `kpi` | `kpi.py` | `—` | yes | no | no | **DOM-only** |
 | `layout_grid` | `layout_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `link` | `link.py` | `—` | yes | no | no | **DOM-only** |
 | `list_region` | `list_region.py` | `—` | yes | yes | yes | **schema+DOM** |
