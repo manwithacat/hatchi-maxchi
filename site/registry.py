@@ -2453,8 +2453,10 @@ def select(source: str, id: str) -> str:
             'color:var(--colour-brand-text);font-size:var(--text-xs);">4:3</span></div>'
             "</div>",
             notes="PLACEHOLDER — shadcn parity (HMC-036). Pure CSS aspect-ratio + "
-            "data-dz-ratio presets (1/1, 4/3, 16/9, 21/9). No controller.",
+            "data-dz-ratio presets (1/1, 4/3, 16/9, 21/9). Dual-lock root "
+            ".dz-aspect-ratio (HMC-132). No controller.",
             tags=("layout", "media"),
+            contracts=("contracts/aspect_ratio.py",),
         ),
         Hyperpart(
             "item",
@@ -2501,8 +2503,10 @@ def select(source: str, id: str) -> str:
             "</div></div>",
             notes="PLACEHOLDER — shadcn parity (HMC-035). Opens on :hover / "
             ":focus-within; coarse pointers rely on focus. Distinct from "
-            "popover (explicit open). No JS controller.",
+            "popover (explicit open). Dual-lock root .dz-hover-card (HMC-133). "
+            "No JS controller.",
             tags=("overlay",),
+            contracts=("contracts/hover_card.py",),
         ),
         Hyperpart(
             "carousel",
@@ -2835,8 +2839,10 @@ def select(source: str, id: str) -> str:
             "</div></div></div>",
             notes="PLACEHOLDER — shadcn parity (HMC-041). Composes "
             "bubble. Live chat = server re-render / OOB append into "
-            "message-scroller, not client message state.",
+            "message-scroller, not client message state. Dual-lock root "
+            ".dz-message (HMC-134).",
             tags=("media", "chat"),
+            contracts=("contracts/message.py",),
         ),
         Hyperpart(
             "message-scroller",
