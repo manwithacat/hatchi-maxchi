@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 86 |
+| Modules | 88 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -45,6 +45,7 @@ blast radius (who embeds / refuses this part).
 | `empty_state` | `empty-state` | `[data-dz-empty-state]` | [data-dz-empty-state][data-dz-empty-state=present] | EmptyState(action_html:str:opt; description:str:opt; icon_html:str:opt; title:str:opt) |
 | `entity_card` | `entity-card` | `[data-dz-entity-card]` | [data-dz-entity-card][data-dz-entity-card=present] | EntityCard(body_html:str:opt; region_name:str:opt) |
 | `filter_bar` | `filter-bar` | `.dz-filter-bar` | .dz-filter-bar[] | — |
+| `form_field` | `form-field` | `.dz-form-field` | .dz-form-field[] | — |
 | `funnel` | `funnel` | `[data-dz-funnel]` | [data-dz-funnel][data-dz-funnel=present] | Funnel(empty_message:str:opt; stages:list[FunnelStage]:opt; total:int:opt); FunnelStage(count:int:opt; label:str:req) |
 | `grid` | `grid` | `[data-dz-grid]` | — | — |
 | `grid_cols` | `grid-cols` | `[data-dz-grid]` | [data-dz-grid-col-toggle][data-dz-grid-col-toggle=present]; [data-dz-col][data-dz-col=present]; [data-dz-grid-cols-reset][] | — |
@@ -56,6 +57,7 @@ blast radius (who embeds / refuses this part).
 | `histogram` | `histogram` | `[data-dz-histogram]` | [data-dz-histogram][data-dz-histogram=present] | Histogram(bins:list[HistogramBin]:opt; empty_message:str:opt; label:str:opt; svg_html:str:opt); HistogramBin(count:int:opt; high:float:opt; label:str:req; low:float:opt) |
 | `icon` | `icon` | `.dz-icon` | .dz-icon[] | — |
 | `inline_edit` | `inline-edit` | `.dz-inline-edit` | .dz-inline-edit[] | — |
+| `interactive` | `interactive` | `.dz-interactive` | .dz-interactive[] | — |
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
 | `layout_grid` | `layout-grid` | `.dz-grid` | .dz-grid[] | — |
 | `link` | `link` | `.dz-link` | .dz-link[] | — |
