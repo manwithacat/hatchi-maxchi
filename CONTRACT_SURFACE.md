@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 125 |
+| Modules | 129 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -19,6 +19,7 @@ blast radius (who embeds / refuses this part).
 | `activity_feed` | `activity-feed` | `[data-dz-activity-row]` | [data-dz-activity-row][data-dz-activity-row=present] | ActivityRow(actor:str:opt; description:str:req; time_str:str:req) |
 | `activity_feed_list` | `activity-feed-list` | `.dz-activity-feed` | .dz-activity-feed[] | — |
 | `add_card_row` | `add-card-row` | `.dz-add-card-row` | .dz-add-card-row[] | — |
+| `alert` | `alert` | `.dz-alert` | .dz-alert[] | — |
 | `app_shell` | `app-shell` | `[data-dz-sidebar]` | [data-dz-sidebar][data-dz-sidebar=one_of:open\|closed]; [data-dz-sidebar-toggle][] | — |
 | `aspect_ratio` | `aspect-ratio` | `.dz-aspect-ratio` | .dz-aspect-ratio[] | — |
 | `auto_grid` | `auto_grid` | `.dz-auto-grid` | .dz-auto-grid[] | — |
@@ -27,6 +28,7 @@ blast radius (who embeds / refuses this part).
 | `bar_track` | `bar-track` | `[data-dz-bar-track]` | [data-dz-bar-track][data-dz-bar-track=present] | BarTrack(max_value:float:opt; rows:list[BarTrackRow]:opt); BarTrackRow(fill_pct:float:opt; formatted:str:opt; label:str:req; value:float:opt) |
 | `box_plot` | `box-plot` | `[data-dz-box-plot]` | [data-dz-box-plot][data-dz-box-plot=present] | BoxPlot(empty_message:str:opt; groups:list[BoxPlotGroup]:opt; label:str:opt; svg_html:str:opt); BoxPlotGroup(label:str:req; max:float:opt; median:float:opt; min:float:opt; q1:float:opt; q3:float:opt; samples:int:opt) |
 | `breadcrumb` | `breadcrumb` | `.dz-breadcrumb` | .dz-breadcrumb[] | — |
+| `bubble` | `bubble` | `.dz-bubble` | .dz-bubble[] | — |
 | `bulk_actions` | `bulk-actions` | `.dz-bulk-actions` | .dz-bulk-actions[] | — |
 | `bullet` | `bullet` | `[data-dz-bullet]` | [data-dz-bullet][data-dz-bullet=present] | Bullet(bands:list[BulletBand]:opt; empty_message:str:opt; max_value:float:opt; rows:list[BulletRow]:opt); BulletBand(color:Literal:opt; from_value:float:req; label:str:opt; to_value:float:req); BulletRow(actual:float:req; label:str:req; target:float\|None:opt) |
 | `button` | `button` | `.dz-button` | .dz-button[] | — |
@@ -35,6 +37,7 @@ blast radius (who embeds / refuses this part).
 | `card_picker` | `card-picker` | `.dz-card-picker` | .dz-card-picker[] | — |
 | `carousel` | `carousel` | `[data-dz-carousel]` | [data-dz-carousel][]; [data-dz-carousel-index][data-dz-carousel-index=present]; [data-dz-carousel-prev][]; [data-dz-carousel-next][]; [data-dz-active][]; [data-dz-carousel-wrap][data-dz-carousel-wrap=present]; [data-dz-carousel-interval][data-dz-carousel-interval=present]; [data-dz-carousel-status][] | — |
 | `center` | `center` | `.dz-center` | .dz-center[] | — |
+| `chart_legend` | `chart_legend` | `.dz-chart-legend` | .dz-chart-legend[] | — |
 | `cluster` | `cluster` | `.dz-cluster` | .dz-cluster[] | — |
 | `code` | `code` | `[data-dz-code]` | [data-dz-code][data-dz-code=present]; [data-dz-code-copy][data-dz-code-copy=present] | — |
 | `cohort_strip` | `cohort-strip` | `[data-dz-cohort-strip]` | [data-dz-cohort-strip][data-dz-cohort-strip=present] | CohortStrip(body_html:str:opt; region_name:str:opt) |
@@ -58,6 +61,7 @@ blast radius (who embeds / refuses this part).
 | `entity_card` | `entity-card` | `[data-dz-entity-card]` | [data-dz-entity-card][data-dz-entity-card=present] | EntityCard(body_html:str:opt; region_name:str:opt) |
 | `file_upload` | `file-upload` | `[data-dz-widget="file-upload"]` | [data-dz-widget="file-upload"][] | — |
 | `filter_bar` | `filter-bar` | `.dz-filter-bar` | .dz-filter-bar[] | — |
+| `form_errors` | `form_errors` | `.dz-form-errors` | .dz-form-errors[] | — |
 | `form_field` | `form-field` | `.dz-form-field` | .dz-form-field[] | — |
 | `form_section` | `form-section` | `.dz-form-section` | .dz-form-section[] | — |
 | `form_stack` | `form-stack` | `.dz-form-stack` | .dz-form-stack[] | — |

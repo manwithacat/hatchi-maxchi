@@ -286,7 +286,9 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
             '<span class="dz-alert__icon">{svg:triangle-alert}</span>'
             '<div class="dz-alert__body"><div class="dz-alert__title">Payment method expiring</div>'
             '<div class="dz-alert__description">Your card ending 4242 expires next month.</div></div></div>',
+            notes="Dual-lock root .dz-alert (HMC-140).",
             tags=("identity",),
+            contracts=("contracts/alert.py",),
         ),
         Hyperpart(
             "card",
@@ -1694,9 +1696,16 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
             "<code>aria-current=&quot;step&quot;</code>) — the live navigation "
             "behaviour is the <code>wizard</code> Hyperpart "
             "(<code>dz-wizard.js</code>; the dzWizard Alpine island retired in "
-            "Tier F4d).",
+            "Tier F4d). Dual-lock: form_errors + form_stepper + form_section + "
+            "form_field (HMC-143).",
             tags=("forms",),
             composes=("field",),
+            contracts=(
+                "contracts/form_errors.py",
+                "contracts/form_stepper.py",
+                "contracts/form_section.py",
+                "contracts/form_field.py",
+            ),
         ),
         Hyperpart(
             "wizard",
@@ -2811,8 +2820,10 @@ def select(source: str, id: str) -> str:
             "</div>",
             notes="PLACEHOLDER — shadcn parity (HMC-040). "
             "<code>data-dz-from=in|out</code> picks surface colour. Prefer "
-            "message Hyperpart for avatar + meta; bubble is the content shell only.",
+            "message Hyperpart for avatar + meta; bubble is the content shell only. "
+            "Dual-lock root .dz-bubble (HMC-141).",
             tags=("media", "chat"),
+            contracts=("contracts/bubble.py",),
         ),
         Hyperpart(
             "message",
@@ -3984,8 +3995,10 @@ def select(source: str, id: str) -> str:
             "<code>&lt;ul&gt;</code> of swatch + mono series-name items, and a "
             "mono summary line of bucket/series counts and the peak. The swatch "
             "background is the series colour the chart body uses for its "
-            "strokes — inline, per series, server-assigned.",
+            "strokes — inline, per series, server-assigned. Dual-lock root "
+            ".dz-chart-legend (HMC-142).",
             tags=("data", "chart"),
+            contracts=("contracts/chart_legend.py",),
         ),
         Hyperpart(
             "radar",

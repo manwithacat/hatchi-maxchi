@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 125 |
+| Contract modules | 129 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 83 |
+| Dual-lock DOM-only | 87 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 0 |
 
@@ -28,6 +28,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `activity_feed` | `activity_feed.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `activity_feed_list` | `activity_feed_list.py` | `—` | yes | no | no | **DOM-only** |
 | `add_card_row` | `add_card_row.py` | `—` | yes | no | no | **DOM-only** |
+| `alert` | `alert.py` | `—` | yes | no | no | **DOM-only** |
 | `app_shell` | `app_shell.py` | `dz-app-shell.js` | yes | no | no | **DOM-only** |
 | `aspect_ratio` | `aspect_ratio.py` | `—` | yes | no | no | **DOM-only** |
 | `auto_grid` | `auto_grid.py` | `—` | yes | no | no | **DOM-only** |
@@ -36,6 +37,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `bar_track` | `bar_track.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `box_plot` | `box_plot.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `breadcrumb` | `breadcrumb.py` | `—` | yes | no | no | **DOM-only** |
+| `bubble` | `bubble.py` | `—` | yes | no | no | **DOM-only** |
 | `bulk_actions` | `bulk_actions.py` | `—` | yes | no | no | **DOM-only** |
 | `bullet` | `bullet.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `button` | `button.py` | `—` | yes | no | no | **DOM-only** |
@@ -44,6 +46,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `card_picker` | `card_picker.py` | `—` | yes | no | no | **DOM-only** |
 | `carousel` | `carousel.py` | `dz-carousel.js` | yes | no | no | **DOM-only** |
 | `center` | `center.py` | `—` | yes | no | no | **DOM-only** |
+| `chart_legend` | `chart_legend.py` | `—` | yes | no | no | **DOM-only** |
 | `cluster` | `cluster.py` | `—` | yes | no | no | **DOM-only** |
 | `code` | `code.py` | `dz-code.js` | yes | no | no | **deferred** |
 | `cohort_strip` | `cohort_strip.py` | `—` | yes | yes | yes | **schema+DOM** |
@@ -67,6 +70,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `entity_card` | `entity_card.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `file_upload` | `file_upload.py` | `—` | yes | no | no | **DOM-only** |
 | `filter_bar` | `filter_bar.py` | `—` | yes | no | no | **DOM-only** |
+| `form_errors` | `form_errors.py` | `—` | yes | no | no | **DOM-only** |
 | `form_field` | `form_field.py` | `—` | yes | no | no | **DOM-only** |
 | `form_section` | `form_section.py` | `—` | yes | no | no | **DOM-only** |
 | `form_stack` | `form_stack.py` | `—` | yes | no | no | **DOM-only** |
