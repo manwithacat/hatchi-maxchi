@@ -9,7 +9,7 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 105 |
+| Modules | 107 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
@@ -40,6 +40,7 @@ blast radius (who embeds / refuses this part).
 | `confirm_panel` | `confirm-panel` | `[data-dz-confirm-gate]` | [data-dz-confirm-gate][data-dz-required-count=present]; [data-dz-required="true"][data-dz-required=present] | — |
 | `csv_export_button` | `csv-export-button` | `.dz-list-csv-button` | .dz-list-csv-button[] | — |
 | `dashboard_card` | `dashboard-card` | `[data-dz-dashboard-card]` | [data-dz-dashboard-card][data-dz-dashboard-card=present] | DashboardCard(attrs:str:opt; body_html:str:opt) |
+| `dashboard_grid` | `dashboard-grid` | `.dz-dashboard-grid` | .dz-dashboard-grid[] | — |
 | `date_range` | `date-range` | `[data-dz-date-range]` | [data-dz-date-range][data-dz-date-range=present] | DateRange(date_from:str:opt; date_to:str:opt; endpoint:str:opt; region_name:str:opt; target:str:opt) |
 | `day_timeline` | `day-timeline` | `[data-dz-day-timeline]` | [data-dz-day-timeline][data-dz-day-timeline=present] | DayTimeline(body_html:str:opt; region_name:str:opt) |
 | `detail_grid` | `detail-grid` | `.dz-detail-region` | .dz-detail-region[] | — |
@@ -84,6 +85,7 @@ blast radius (who embeds / refuses this part).
 | `pdf` | `pdf` | `[data-dz-pdf]` | [data-dz-pdf][data-dz-pdf-lib=present, data-dz-pdf-src=present]; [data-dz-pdf-viewer][] | — |
 | `pipeline` | `pipeline` | `[data-dz-pipeline]` | [data-dz-pipeline][data-dz-pipeline=present] | Pipeline(body_html:str:opt) |
 | `pivot` | `pivot` | `[data-dz-pivot]` | [data-dz-pivot][data-dz-pivot=present] | PivotTable(dim_headers:list[str]:opt; empty_message:str:opt; measure_headers:list[str]:opt; rows:list[list[str]]:opt) |
+| `pivot_table` | `pivot-table` | `.dz-pivot-table` | .dz-pivot-table[] | — |
 | `popover` | `popover` | `details.dz-popover, .dz-popover` | details.dz-popover, .dz-popover[] | — |
 | `profile_card` | `profile-card` | `[data-dz-profile-card]` | [data-dz-profile-card][data-dz-profile-card=present] | ProfileCard(avatar_url:str:opt; facts:list[str]:opt; initials:str:opt; primary:str:opt; secondary:str:opt; stats:list[tuple[str,str]]:opt) |
 | `progress` | `progress-region` | `[data-dz-progress-region]` | [data-dz-progress-region][data-dz-progress-region=present] | Progress(complete_count:int:opt; complete_pct:float:opt; stages:list[ProgressStage]:opt; total:int:opt); ProgressStage(complete:bool:opt; count:int:opt; name:str:req) |
