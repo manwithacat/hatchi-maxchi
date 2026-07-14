@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 102 |
+| Contract modules | 105 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 56 |
+| Dual-lock DOM-only | 59 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 4 |
 
@@ -23,6 +23,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | Part | Contract | Controller | DOM_CONTRACT | Model | render() | Dual-lock |
 |------|----------|------------|--------------|-------|----------|-----------|
 | `action_grid` | `action_grid.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `action_grid_region` | `action_grid_region.py` | `—` | yes | no | no | **DOM-only** |
 | `activity_feed` | `activity_feed.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `add_card_row` | `add_card_row.py` | `—` | yes | no | no | **DOM-only** |
 | `app_shell` | `app_shell.py` | `dz-app-shell.js` | yes | no | no | **DOM-only** |
@@ -50,6 +51,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `dashboard_card` | `dashboard_card.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `date_range` | `date_range.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `day_timeline` | `day_timeline.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `detail_grid` | `detail_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `diagram` | `diagram.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `dialog` | `dialog.py` | `dz-dialog.js` | yes | no | no | **DOM-only** |
 | `drawer` | `drawer.py` | `—` | yes | no | no | **DOM-only** |
@@ -123,6 +125,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `topbar` | `topbar.py` | `—` | yes | no | no | **DOM-only** |
 | `tree` | `tree.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `wizard` | `wizard.py` | `dz-wizard.js` | yes | no | no | **DOM-only** |
+| `workspace_context` | `workspace_context.py` | `—` | yes | no | no | **DOM-only** |
 | `workspace_toolbar` | `workspace_toolbar.py` | `—` | yes | no | no | **DOM-only** |
 
 ## Priority notes (Phase B)

@@ -9,11 +9,12 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 102 |
+| Modules | 105 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
 | `action_grid` | `action-grid` | `[data-dz-action-card]` | [data-dz-action-card][data-dz-action-card=present, data-dz-tone=one_of:neutral\|positive\|warning\|destructive\|accent] | ActionCard(count:int\|None:opt; icon_html:str:opt; label:str:req; tone:Literal:opt; url:str:opt) |
+| `action_grid_region` | `action-grid-region` | `.dz-action-grid-region` | .dz-action-grid-region[] | — |
 | `activity_feed` | `activity-feed` | `[data-dz-activity-row]` | [data-dz-activity-row][data-dz-activity-row=present] | ActivityRow(actor:str:opt; description:str:req; time_str:str:req) |
 | `add_card_row` | `add-card-row` | `.dz-add-card-row` | .dz-add-card-row[] | — |
 | `app_shell` | `app-shell` | `[data-dz-sidebar]` | [data-dz-sidebar][data-dz-sidebar=one_of:open\|closed]; [data-dz-sidebar-toggle][] | — |
@@ -41,6 +42,7 @@ blast radius (who embeds / refuses this part).
 | `dashboard_card` | `dashboard-card` | `[data-dz-dashboard-card]` | [data-dz-dashboard-card][data-dz-dashboard-card=present] | DashboardCard(attrs:str:opt; body_html:str:opt) |
 | `date_range` | `date-range` | `[data-dz-date-range]` | [data-dz-date-range][data-dz-date-range=present] | DateRange(date_from:str:opt; date_to:str:opt; endpoint:str:opt; region_name:str:opt; target:str:opt) |
 | `day_timeline` | `day-timeline` | `[data-dz-day-timeline]` | [data-dz-day-timeline][data-dz-day-timeline=present] | DayTimeline(body_html:str:opt; region_name:str:opt) |
+| `detail_grid` | `detail-grid` | `.dz-detail-region` | .dz-detail-region[] | — |
 | `diagram` | `diagram` | `[data-dz-diagram]` | [data-dz-diagram][data-dz-diagram=present] | Diagram(edges:list[tuple[str,str]]:opt; mermaid_source:str:opt; nodes:list[str]:opt) |
 | `dialog` | `dialog` | `[data-dz-dialog-open]` | [data-dz-dialog-open][data-dz-dialog-open=present] | — |
 | `drawer` | `drawer` | `.dz-drawer` | .dz-drawer[] | — |
@@ -114,6 +116,7 @@ blast radius (who embeds / refuses this part).
 | `topbar` | `topbar` | `.dz-topbar` | .dz-topbar[] | — |
 | `tree` | `tree` | `[data-dz-tree]` | [data-dz-tree][data-dz-tree=present] | Tree(body_html:str:opt) |
 | `wizard` | `wizard` | `[data-dz-wizard]` | [data-dz-wizard][data-dz-step=present]; [data-dz-stage][data-dz-stage=present]; [data-dz-state][data-dz-state=one_of:complete\|current\|pending] | — |
+| `workspace_context` | `workspace-context` | `.dz-workspace-context` | .dz-workspace-context[] | — |
 | `workspace_toolbar` | `workspace-toolbar` | `.dz-workspace-toolbar` | .dz-workspace-toolbar[] | — |
 
 ## Related
