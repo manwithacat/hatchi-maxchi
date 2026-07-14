@@ -10,9 +10,9 @@ Regenerate: `python packages/hatchi-maxchi/tools/dual_lock_coverage.py --write`
 |--------|------:|
 | Component CSS modules | 75 |
 | Controllers | 24 |
-| Contract modules | 108 |
+| Contract modules | 111 |
 | Dual-lock schema+DOM | 41 |
-| Dual-lock DOM-only | 62 |
+| Dual-lock DOM-only | 65 |
 | Dual-lock deferred | 1 |
 | Contract with no dual-lock row | 4 |
 
@@ -25,6 +25,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `action_grid` | `action_grid.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `action_grid_region` | `action_grid_region.py` | `—` | yes | no | no | **DOM-only** |
 | `activity_feed` | `activity_feed.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `activity_feed_list` | `activity_feed_list.py` | `—` | yes | no | no | **DOM-only** |
 | `add_card_row` | `add_card_row.py` | `—` | yes | no | no | **DOM-only** |
 | `app_shell` | `app_shell.py` | `dz-app-shell.js` | yes | no | no | **DOM-only** |
 | `badge` | `badge.py` | `—` | yes | no | no | **DOM-only** |
@@ -77,6 +78,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `inline_edit` | `inline_edit.py` | `—` | yes | no | no | **DOM-only** |
 | `interactive` | `interactive.py` | `—` | yes | no | no | **DOM-only** |
 | `kanban` | `kanban.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `kanban_board` | `kanban_board.py` | `—` | yes | no | no | **DOM-only** |
 | `kpi` | `kpi.py` | `—` | yes | no | no | **DOM-only** |
 | `layout_grid` | `layout_grid.py` | `—` | yes | no | no | **DOM-only** |
 | `link` | `link.py` | `—` | yes | no | no | **DOM-only** |
@@ -99,6 +101,7 @@ Source of dual-lock columns: monorepo `tests/unit/hm_contract_registry.py`.
 | `profile_card` | `profile_card.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `progress` | `progress.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `queue` | `queue.py` | `—` | yes | yes | yes | **schema+DOM** |
+| `queue_region` | `queue_region.py` | `—` | yes | no | no | **DOM-only** |
 | `radar` | `radar.py` | `—` | yes | yes | yes | **schema+DOM** |
 | `ref_picker` | `ref_picker.py` | `—` | yes | no | no | **DOM-only** |
 | `region` | `region.py` | `—` | yes | no | no | **DOM-only** |

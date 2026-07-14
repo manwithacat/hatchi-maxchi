@@ -9,13 +9,14 @@ add/remove/rename a required DOM attr or model field, this file changes
 and CI fails until you regenerate *and* check `CONSUMER_MAP.md` for
 blast radius (who embeds / refuses this part).
 
-| Modules | 108 |
+| Modules | 111 |
 
 | Module | Part | Root | Nodes (attr constraints) | Models (field:type:req) |
 |--------|------|------|--------------------------|-------------------------|
 | `action_grid` | `action-grid` | `[data-dz-action-card]` | [data-dz-action-card][data-dz-action-card=present, data-dz-tone=one_of:neutral\|positive\|warning\|destructive\|accent] | ActionCard(count:int\|None:opt; icon_html:str:opt; label:str:req; tone:Literal:opt; url:str:opt) |
 | `action_grid_region` | `action-grid-region` | `.dz-action-grid-region` | .dz-action-grid-region[] | — |
 | `activity_feed` | `activity-feed` | `[data-dz-activity-row]` | [data-dz-activity-row][data-dz-activity-row=present] | ActivityRow(actor:str:opt; description:str:req; time_str:str:req) |
+| `activity_feed_list` | `activity-feed-list` | `.dz-activity-feed` | .dz-activity-feed[] | — |
 | `add_card_row` | `add-card-row` | `.dz-add-card-row` | .dz-add-card-row[] | — |
 | `app_shell` | `app-shell` | `[data-dz-sidebar]` | [data-dz-sidebar][data-dz-sidebar=one_of:open\|closed]; [data-dz-sidebar-toggle][] | — |
 | `badge` | `badge` | `.dz-badge` | .dz-badge[] | — |
@@ -68,6 +69,7 @@ blast radius (who embeds / refuses this part).
 | `inline_edit` | `inline-edit` | `.dz-inline-edit` | .dz-inline-edit[] | — |
 | `interactive` | `interactive` | `.dz-interactive` | .dz-interactive[] | — |
 | `kanban` | `kanban` | `[data-dz-kanban-card]` | [data-dz-kanban-card][data-dz-kanban-card=present] | KanbanCard(attention_level:str:opt; attention_message:str:opt; fields_html:str:opt; title:str:req) |
+| `kanban_board` | `kanban-board` | `.dz-kanban` | .dz-kanban[] | — |
 | `kpi` | `kpi` | `.dz-kpi` | .dz-kpi[] | — |
 | `layout_grid` | `layout-grid` | `.dz-grid` | .dz-grid[] | — |
 | `link` | `link` | `.dz-link` | .dz-link[] | — |
@@ -90,6 +92,7 @@ blast radius (who embeds / refuses this part).
 | `profile_card` | `profile-card` | `[data-dz-profile-card]` | [data-dz-profile-card][data-dz-profile-card=present] | ProfileCard(avatar_url:str:opt; facts:list[str]:opt; initials:str:opt; primary:str:opt; secondary:str:opt; stats:list[tuple[str,str]]:opt) |
 | `progress` | `progress-region` | `[data-dz-progress-region]` | [data-dz-progress-region][data-dz-progress-region=present] | Progress(complete_count:int:opt; complete_pct:float:opt; stages:list[ProgressStage]:opt; total:int:opt); ProgressStage(complete:bool:opt; count:int:opt; name:str:req) |
 | `queue` | `queue` | `[data-dz-queue-row]` | [data-dz-queue-row][data-dz-queue-row=present] | QueueRow(actions_html:str:opt; attention_level:str:opt; attention_message:str:opt; badges_html:str:opt; date_html:str:opt; title:str:req) |
+| `queue_region` | `queue-region` | `.dz-queue-region` | .dz-queue-region[] | — |
 | `radar` | `radar` | `[data-dz-radar]` | [data-dz-radar][data-dz-radar=present] | Radar(axes:list[RadarAxis]:opt; empty_message:str:opt; label:str:opt; peak_display:str:opt; svg_html:str:opt); RadarAxis(label:str:req; value:float:opt) |
 | `ref_picker` | `ref-picker` | `.dz-ref-picker` | .dz-ref-picker[] | — |
 | `region` | `region` | `.dz-region` | .dz-region[] | — |
