@@ -86,6 +86,8 @@ _EMIT_TO_STEM: dict[str, str] = {
     "_emit_field": "form_field",
     "_emit_form_stack": "form_stack",
     "_emit_submit": "submit",
+    "_emit_form_section": "form_section",
+    "_emit_form_stepper": "form_stepper",
 }
 
 
