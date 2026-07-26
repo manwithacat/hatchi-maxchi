@@ -52,6 +52,11 @@ class Exchange:
     # coding agent needs these enumerated, not implied — an endpoint-backed
     # component is under-specified without its empty/error behaviour.
     states: tuple[str, ...] = ()
+    # ADR-0054 / decision 0012 — **exchange envelope** (agent-visible):
+    # what the response may re-emit relative to the persistent slot.
+    # ``body_only`` | ``outer`` | ``none`` | ``host_owned`` | ``document``.
+    # Empty → inferred from ``swap`` prose; remaining ``unspecified`` fails CI.
+    envelope: str = ""
     # Optional FastAPI-shaped handler source for HTMX4 app authors / agents.
     # This is the *exchange* endpoint (what runs after the client affordance),
     # not a dual-lock module. Omit when the part is pure client chrome.
@@ -517,6 +522,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     "with the current-page button marked `is-current` + `aria-current='page'`",
                     swap="innerMorph of the region's body (`#{region}-body`)",
                     states=("loading", "populated", "error"),
+                    envelope="body_only",
                 ),
             ),
             mock="/mock/pagination",
@@ -801,6 +807,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     'one swap). The footer\'s current-page button carries `aria-current="page"` — '
                     "the client reads it back as the authoritative (possibly server-clamped) page",
                     states=("loading", "empty", "populated", "error"),
+                    envelope="body_only",
                 ),
                 Exchange(
                     method="POST",
@@ -843,6 +850,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     swap="none (raw fetch) — the follow-up `dz-grid:refresh` re-fetches "
                     "rows + footer via the tbody's normal GET",
                     states=("populated", "error"),
+                    envelope="none",
                 ),
             ),
             controller="controllers/dz-grid.js",
@@ -1047,6 +1055,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     "for the affected region (e.g. the row's removal, or an empty-state). "
                     "Not a toast — the gallery's 'Deleted (demo).' toast is MOCK_HTMX only",
                     swap="per the button's `hx-target`/`hx-swap` (row removal by default)",
+                    envelope="host_owned",
                     server_example=(
                         "# This is the DELETE after confirm — not a “confirm API”.\n"
                         "# The dialog is client-only (hx-confirm + dz-confirm.js).\n"
@@ -1541,6 +1550,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     response="full record document (tabs, KPI grid, edit actions) — "
                     "gallery Blueprint `record-page`; not a fragment swap",
                     swap="document (navigation)",
+                    envelope="document",
                 ),
             ),
             mock="/mock/drawer/detail",
@@ -2061,6 +2071,7 @@ HYPERPARTS: list[Hyperpart] = finalize_hyperparts(
                     "206 partial with Content-Range; opaque 404 when the "
                     "record is out of scope; 416 for unsatisfiable ranges",
                     swap="none (bytes consumed by the rendering engine)",
+                    envelope="none",
                 ),
             ),
         ),
