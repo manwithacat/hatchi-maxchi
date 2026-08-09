@@ -243,9 +243,9 @@ scanner = "catalogue_only"
 [[scenario]]
 id = "live_conversation_thread"
 hyperpart = "message-scroller"
-authoring = "planned:display:conversation + message-scroller shell"
+authoring = "display: conversation"
 layer = "region"
-job = "Live customer↔agent thread still wants message-scroller chrome around Message+Bubble rows."
+job = "Live customer↔agent thread mounts message-scroller chrome around Message+Bubble rows."
 use_when = [
   "region is a chronological comment/message thread for support or collab",
   "primary job is read/write conversation, not field inventory",
@@ -254,13 +254,12 @@ use_when = [
 refuse_when = [
   "plain activity_feed of system events (use activity_feed)",
   "single-field note list without thread UX",
-  "Message rows alone already cover the job (message emit_covered)",
 ]
-status_if_fit = "planned_emitter"
+status_if_fit = "emit_covered"
 ownership = "framework"
 severity = "medium"
-residual_lane = "framework-ux"
-example_homes = ["support_tickets live_conversation / comments"]
+residual_lane = "none"
+example_homes = ["support_tickets live_conversation", "simple_task sample_thread"]
 scanner = "catalogue_only"
 
 [[scenario]]
@@ -346,6 +345,29 @@ ownership = "framework"
 severity = "low"
 residual_lane = "none"
 example_homes = ["design_studio (menubar: true)"]
+scanner = "catalogue_only"
+
+[[scenario]]
+id = "sitespec_product_top_nav"
+hyperpart = "navigation-menu"
+authoring = "sitespec layout.nav"
+layer = "shell"
+job = "Public/product site go-to top nav uses HM navigation-menu dual-lock, not bare dz-nav-link or menubar."
+use_when = [
+  "sitespec defines layout.nav public or authenticated items",
+  "marketing/site pages need durable horizontal product IA",
+  "optional mega panels for Product/Resources-style branches",
+]
+refuse_when = [
+  "app File/Edit/View chrome (use menubar)",
+  "left-rail app navigation (use app-shell sidebar)",
+  "single host overflow actions (use menu)",
+]
+status_if_fit = "emit_covered"
+ownership = "framework"
+severity = "low"
+residual_lane = "none"
+example_homes = ["design_studio sitespec layout.nav (and all example site shells)"]
 scanner = "catalogue_only"
 
 [[scenario]]
