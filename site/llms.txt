@@ -1,0 +1,124 @@
+# HaTchi-MaXchi
+
+> An htmx4-native design system. The unit of reuse is a Hyperpart: a
+> server-rendered partial + its endpoint exchange contracts + an
+> optional vanilla-JS controller. No client framework.
+
+## Sources
+
+- [AGENTS.md](https://github.com/manwithacat/hatchi-maxchi/blob/main/AGENTS.md): **always-on curriculum** — stems, layers, invention ladder, authority hierarchy
+- [Package stems](https://github.com/manwithacat/hatchi-maxchi/tree/main/stems): compressed Hyperpart judgement (INDEX + stem files)
+- [Agent playbooks](https://github.com/manwithacat/hatchi-maxchi/tree/main/docs/agent): pick-a-surface, compose-or-refuse, mutate-a-primitive, invent-safely
+- [Decisions (expressions of stems)](https://github.com/manwithacat/hatchi-maxchi/tree/main/docs/decisions): dated why — Hyperpart, layers, composition, invention ladder, swap/identity (0012)
+- [0012 — Swap / identity contract](https://github.com/manwithacat/hatchi-maxchi/blob/main/docs/decisions/0012-swap-identity-contract.md): exchange envelopes (`body_only` | `outer` | …) orthogonal to dual-lock
+- [Component registry (source of truth)](https://github.com/manwithacat/hatchi-maxchi/blob/main/site/registry.py): canonical markup + exchange contracts (`Exchange.envelope`) per component — parse this, don't scrape the gallery
+- [CONSUMER_MAP](https://github.com/manwithacat/hatchi-maxchi/blob/main/CONSUMER_MAP.md): reverse composition / refusal index (blast radius)
+- [CONTRACT_SURFACE](https://github.com/manwithacat/hatchi-maxchi/blob/main/CONTRACT_SURFACE.md): dual-lock attr/field breaking-change detector
+- [Contract modules (typed)](https://github.com/manwithacat/hatchi-maxchi/tree/main/contracts): per-part typed ingestion model + DOM contract + executable exemplar; authoring path in contracts/AUTHORING.md
+- [README](https://github.com/manwithacat/hatchi-maxchi#readme): setup, theming, prefixing, releases
+- [Guide](https://manwithacat.github.io/hatchi-maxchi/guide): human theory track — hypermedia model, tokens, Hyperpart anatomy, exchanges & contracts (incl. swap contract / envelopes), Blueprints, layers
+- [Guide § Exchanges & contracts](https://manwithacat.github.io/hatchi-maxchi/guide#contracts): Server exchange + Swap contract worked example (grid)
+
+## Per-part agent files (one chunk per Hyperpart)
+
+- [Button](https://manwithacat.github.io/hatchi-maxchi/agents/button.md): Primary, outline, ghost, destructive — chromatic accent CTAs.
+- [Badge](https://manwithacat.github.io/hatchi-maxchi/agents/badge.md): Colour + icon + text — status never relies on colour alone (WCAG 1.4.1).
+- [Alert](https://manwithacat.github.io/hatchi-maxchi/agents/alert.md): Tone-wash surfaces — an identity layer shadcn has no vocabulary for.
+- [Toast](https://manwithacat.github.io/hatchi-maxchi/agents/toast.md): Stack host + auto-dismiss notifications — title, body, optional actions; hover/focus pauses the timer (htmx OOB or client bridge).
+- [Card](https://manwithacat.github.io/hatchi-maxchi/agents/card.md): Bordered surface with a resting stacked shadow. Content classes (label / value / delta) build KPI tiles; compose several in auto-grid so each card keeps a natural width instead of stretching full-bleed across the preview.
+- [Pagination](https://manwithacat.github.io/hatchi-maxchi/agents/pagination.md): The footer beneath a data table — a summary and page buttons. Each button hx-gets a page into the list body (an Exchange, not a widget).
+- [Data table](https://manwithacat.github.io/hatchi-maxchi/agents/grid.md): A server-rendered data table on a real <table>, all HTML over the wire: search, sortable headers, filters, row selection (one page or every matching row), bulk actions, pagination, and deep-linkable URL-synced state. Optional extensions add column visibility, column resize, and inline cell editing. See How to use it and the DOM contract on this page for wiring.
+- [Command palette](https://manwithacat.github.io/hatchi-maxchi/agents/command.md): The hx-get palette — the htmx4 flagship. Press ⌘K.
+- [Confirm dialog](https://manwithacat.github.io/hatchi-maxchi/agents/confirm.md): Designed replacement for window.confirm — every hx-confirm upgrades automatically.
+- [Menu](https://manwithacat.github.io/hatchi-maxchi/agents/menu.md): Disclosure menu (`<details>`) — no JS for open state. A disclosure, not a full ARIA menu: no roving tabindex or typeahead.
+- [Popover](https://manwithacat.github.io/hatchi-maxchi/agents/popover.md): Disclosure popover (`<details>`) — free-content panel; body can lazy-load via htmx. Not a focus-trapped/positioned popover.
+- [Tooltip](https://manwithacat.github.io/hatchi-maxchi/agents/tooltip.md): CSS-only visual hint (`data-dz-tooltip`) — zero JS. A hint, not an accessible tooltip: keep it non-critical (no touch/SR/keyboard path). Optional `data-dz-tooltip-open` forces the hint visible (capture/docs).
+- [Dialog](https://manwithacat.github.io/hatchi-maxchi/agents/dialog.md): Modal on the native <dialog> — one line of JS to open, close for free (Esc / backdrop / method=dialog submit). Focus-trapped by the platform.
+- [Drawer](https://manwithacat.github.io/hatchi-maxchi/agents/drawer.md): Edge-anchored panel on the native <dialog> — a drawer with a modal's guarantees (focus trap, inert background, Esc, backdrop). Built on the dialog: shares its opener, adds a side + slide. No drawer-specific JS. Body is a composition host — nest field, badge, card, controls, …
+- [Selection controls](https://manwithacat.github.io/hatchi-maxchi/agents/controls.md): Designed checkbox / radio / switch on native inputs — semantics free.
+- [Field](https://manwithacat.github.io/hatchi-maxchi/agents/field.md): The label + control + help + error triad as one accessible unit. Error state derives from aria-invalid; help/error bind via aria-describedby.
+- [Slider](https://manwithacat.github.io/hatchi-maxchi/agents/slider.md): Native <input type=range> — styled track + thumb, both themes, with an editable value companion via a tiny delegated controller.
+- [Confirm panel](https://manwithacat.github.io/hatchi-maxchi/agents/confirm-panel.md): The irreversible-action consent gate: a checklist of obligations that must be ticked before the primary action arms, plus live and revoked summary states.
+- [Search box](https://manwithacat.github.io/hatchi-maxchi/agents/search-box.md): The FTS search region: a debounced search input, an aria-live results panel, and a coaching line that hides — via pure CSS — the moment the user types.
+- [Form chrome](https://manwithacat.github.io/hatchi-maxchi/agents/form-chrome.md): The structural form pieces: titled sections, the validation-error summary, and the multi-section progress stepper.
+- [Wizard](https://manwithacat.github.io/hatchi-maxchi/agents/wizard.md): Multi-stage form navigation: the stepper drives stage reveal — back freely, forward one validated step at a time.
+- [Money field](https://manwithacat.github.io/hatchi-maxchi/agents/money.md): Major-unit decimal input over a hidden minor-unit carrier — the form posts integer minor units, never floats.
+- [PDF viewer](https://manwithacat.github.io/hatchi-maxchi/agents/pdf.md): The hx-pdf viewing shell: server-authorized bytes, lazy PDF.js rendering, toolbar slots for paging/zoom, URL deep-links — progressive enhancement over a download link.
+- [Two-factor panel](https://manwithacat.github.io/hatchi-maxchi/agents/two-factor.md): The 2FA enrolment/settings card: QR + manual secret, the big-digit code input, recovery-code grid, and factor status rows.
+- [Search select](https://manwithacat.github.io/hatchi-maxchi/agents/search-select.md): The FK typeahead: debounced remote search into a listbox, then a per-row select exchange that fills a hidden id. Domain data maps into a fixed result-row anatomy (name / secondary / optional media) — do not invent a new combobox per entity. Demo: focus the input (or type) to open; media is optional so some rows are text-only.
+- [Combobox](https://manwithacat.github.io/hatchi-maxchi/agents/combobox.md): Searchable single-select over a list of options — a native <select> progressively enhanced into a type-to-filter combobox. Fixed lists by default; growing catalogues (add a missing value) use the same Hyperpart with data-dz-allow-create — not a separate part.
+- [Tags](https://manwithacat.github.io/hatchi-maxchi/agents/tags.md): Multi-value chips + free create — a native text input carrying a comma-joined value, progressively enhanced into a chips UI. JS off: a usable comma-separated text field. JS on: type + Enter/comma creates a chip, blur commits a leftover token, × removes; the native input stays as the submitted value.
+- [Date range](https://manwithacat.github.io/hatchi-maxchi/agents/date-range.md): Two native date inputs driving one htmx exchange — the from/to filter bar for time-scoped regions.
+- [Toggle group](https://manwithacat.github.io/hatchi-maxchi/agents/toggle-group.md): Segmented control on native radios.
+- [Switch](https://manwithacat.github.io/hatchi-maxchi/agents/switch.md): On/off control — progressive enhancement over a native checkbox. State is the checkbox's checked attribute (DOM), not a JS store.
+- [Toggle](https://manwithacat.github.io/hatchi-maxchi/agents/toggle.md): Single pressable mode control (Bold / Italic toolbar style). State is aria-pressed on the button — pair with toggle-group for exclusive segments.
+- [Keyboard key](https://manwithacat.github.io/hatchi-maxchi/agents/kbd.md): Shortcut chip for docs and command chrome — <kbd class=dz-kbd>.
+- [Aspect ratio](https://manwithacat.github.io/hatchi-maxchi/agents/aspect-ratio.md): Media frame that locks width/height — images and embeds fill with object-fit cover.
+- [Item](https://manwithacat.github.io/hatchi-maxchi/agents/item.md): Generic list row — optional media, title, description, trailing actions. Compose into lists, pickers, and search results.
+- [Hover card](https://manwithacat.github.io/hatchi-maxchi/agents/hover-card.md): Rich preview on hover/focus/tap — progressive enhancement over a trigger link or button.
+- [Carousel](https://manwithacat.github.io/hatchi-maxchi/agents/carousel.md): Ordered peer slides in a stable stage — media and/or HTML fragments; DOM-local prev/next/dots (clamp or loop); optional autoplay.
+- [Menubar](https://manwithacat.github.io/hatchi-maxchi/agents/menubar.md): Horizontal app menus (File / Edit / View) — each item is a native details/summary so open state is DOM-native.
+- [Bubble](https://manwithacat.github.io/hatchi-maxchi/agents/bubble.md): Chat bubble shell — rounded content for inbound/outbound speech. Compose inside message rows.
+- [Message](https://manwithacat.github.io/hatchi-maxchi/agents/message.md): Chat message row — media + author/time meta + bubble. Outbound rows reverse with data-dz-from=out.
+- [Message scroller](https://manwithacat.github.io/hatchi-maxchi/agents/message-scroller.md): Chat transcript viewport — scrollable stack of message rows. Document order is chronological (newest last).
+- [Navigation menu](https://manwithacat.github.io/hatchi-maxchi/agents/navigation-menu.md): Top product/site nav with optional mega-menu panels — horizontal, not the app-shell sidebar. Triggers use native details.
+- [Marker](https://manwithacat.github.io/hatchi-maxchi/agents/marker.md): Map pin chrome + optional label — host owns map projection / placement.
+- [Breadcrumb](https://manwithacat.github.io/hatchi-maxchi/agents/breadcrumb.md): CSS-generated chevrons; clean list markup.
+- [Accordion](https://manwithacat.github.io/hatchi-maxchi/agents/accordion.md): Native <details> group; single-open via the HTML name= attribute — opening one closes its siblings, zero JS.
+- [Tabs](https://manwithacat.github.io/hatchi-maxchi/agents/tabs.md): A lazy tab strip — an honest link-strip (buttons + aria-current, no unkept role=tablist). Each panel hx-gets its content the first time it is shown.
+- [Avatar](https://manwithacat.github.io/hatchi-maxchi/agents/avatar.md): Initials or image; stacked groups.
+- [Progress](https://manwithacat.github.io/hatchi-maxchi/agents/progress.md): Toned determinate bar.
+- [Skeleton](https://manwithacat.github.io/hatchi-maxchi/agents/skeleton.md): Loading placeholder with a lifecycle-driven sheen (TASTE-9) — drop it into a swap target while the request is in flight.
+- [Empty state](https://manwithacat.github.io/hatchi-maxchi/agents/empty-state.md): Icon + one sentence + primary action — never a bare 'No X'.
+- [Code block](https://manwithacat.github.io/hatchi-maxchi/agents/code.md): Fenced code surface with optional language chip and copy control — server-emitted chrome for docs and samples. Syntax colour is build-time token spans (Python), not a browser highlighter.
+- [Toolbar](https://manwithacat.github.io/hatchi-maxchi/agents/toolbar.md): Inline composition — real button, toggle-group and menu markup nested in a role=toolbar bar. No client tree, no props: composition is HTML.
+- [Master–detail](https://manwithacat.github.io/hatchi-maxchi/agents/master-detail.md): Exchange composition — a list item hx-gets its detail card into the detail pane. The canonical htmx composite; two can coexist on a page.
+- [Stack](https://manwithacat.github.io/hatchi-maxchi/agents/stack.md): Vertical rhythm: children flow top-to-bottom with one gap token. The workhorse — most page sections are a stack of stacks.
+- [Cluster](https://manwithacat.github.io/hatchi-maxchi/agents/cluster.md): A wrapping horizontal group — buttons, chips, metadata rows. Items keep their size and wrap when the line runs out.
+- [Sidebar](https://manwithacat.github.io/hatchi-maxchi/agents/sidebar-layout.md): Two panes: a fixed-ish side and a fluid content pane that wraps UNDER the side when it would get too narrow — responsive without a media query.
+- [Auto grid](https://manwithacat.github.io/hatchi-maxchi/agents/auto-grid.md): A responsive card grid with no breakpoints: columns pack to fit, each at least the minimum width, all equal.
+- [Center](https://manwithacat.github.io/hatchi-maxchi/agents/center.md): A measure-capped, centred column — reading width for prose and forms.
+- [App shell](https://manwithacat.github.io/hatchi-maxchi/agents/app-shell.md): The SaaS/admin application frame: persistent left navigation, an optional sticky top bar, a routed main workspace, and a responsive/collapsible sidebar whose state the server renders.
+- [Status list](https://manwithacat.github.io/hatchi-maxchi/agents/status-list.md): System / check states as an icon + title + caption list — tone rides data-dz-state per row, never colour alone.
+- [Action grid](https://manwithacat.github.io/hatchi-maxchi/agents/action-grid.md): Tone-tinted CTA cards with a count badge — the dashboard's 'what needs doing' surface. Cards with a URL are anchors; the grid packs intrinsically.
+- [Queue](https://manwithacat.github.io/hatchi-maxchi/agents/queue.md): The worklist: a count, roll-up metrics, and attention-flagged rows — the triage surface for SLA-driven work.
+- [Kanban](https://manwithacat.github.io/hatchi-maxchi/agents/kanban.md): Status columns of cards — the flow view. Columns show a count; overflowing boards offer a server-rendered Load-all.
+- [Timeline](https://manwithacat.github.io/hatchi-maxchi/agents/timeline.md): Dated events on a vertical line — bullets carry the attention contract, dates keep a fixed column so titles align.
+- [Activity feed](https://manwithacat.github.io/hatchi-maxchi/agents/activity-feed.md): Who-did-what rows on a dotted spine — actor, time, and a message bubble.
+- [Related records](https://manwithacat.github.io/hatchi-maxchi/agents/related-tables.md): A detail view's companions: tabbed groups of related records — status cards, a compact table, or a file list — each tab counted.
+- [Metric tiles](https://manwithacat.github.io/hatchi-maxchi/agents/metrics.md): The KPI strip: label + value tiles in a packing grid, optionally toned. The server stamps the tile count for e2e anchors.
+- [Sparkline](https://manwithacat.github.io/hatchi-maxchi/agents/sparkline.md): A headline number with its recent shape — the smallest chart: a current value, its bucket label, and an area glyph.
+- [Funnel](https://manwithacat.github.io/hatchi-maxchi/agents/funnel.md): Stage-by-stage narrowing — each bar's width is the stage's share, with a total summary line.
+- [Bar chart](https://manwithacat.github.io/hatchi-maxchi/agents/bar-chart.md): Label / track / value rows — the workhorse categorical chart, server-computed and scope-safe.
+- [Chart legend](https://manwithacat.github.io/hatchi-maxchi/agents/chart-legend.md): The shared tail of every multi-series chart: swatch + series-name chips and a sample/series summary line.
+- [Radar](https://manwithacat.github.io/hatchi-maxchi/agents/radar.md): Polar multi-axis profile — spokes share a scale; the polygon is server-rendered SVG.
+- [Time series](https://manwithacat.github.io/hatchi-maxchi/agents/time-series.md): Line or area sequential chart — one series of (label, value) points, or multi-series overlays with a shared legend.
+- [Heatmap](https://manwithacat.github.io/hatchi-maxchi/agents/heatmap.md): A two-dimensional grid of toned cells — rows × buckets, thresholds driving good/warn/bad tones, never colour alone (the value is IN the cell).
+- [Bullet chart](https://manwithacat.github.io/hatchi-maxchi/agents/bullet.md): Actual vs target on qualitative bands — the KPI-with-context bar. All geometry is server-computed inline percentages.
+- [Pivot table](https://manwithacat.github.io/hatchi-maxchi/agents/pivot.md): Two group-bys crossed into a matrix — row labels × column buckets, empty intersections rendered as explicit nulls.
+- [Bar track](https://manwithacat.github.io/hatchi-maxchi/agents/bar-track.md): Value-against-capacity rows with real progressbar semantics — the resource-usage sibling of the bar chart.
+- [Histogram](https://manwithacat.github.io/hatchi-maxchi/agents/histogram.md): Value-distribution buckets as a server-rendered SVG plus a mono summary line.
+- [Box plot](https://manwithacat.github.io/hatchi-maxchi/agents/box-plot.md): Distribution five-number summaries per bucket — a server-rendered SVG with the counts in the summary line.
+- [Progress stages](https://manwithacat.github.io/hatchi-maxchi/agents/progress-region.md): A native progress bar with stage chips — where the work is, stage by stage, with completion tones.
+- [Profile card](https://manwithacat.github.io/hatchi-maxchi/agents/profile-card.md): The identity panel: avatar or initials beside name and meta, a KPI stats strip (value above label), and optional facts.
+- [Cell grid](https://manwithacat.github.io/hatchi-maxchi/agents/grid-list.md): A responsive grid of plain record cells — title plus label: value lines, 1 → 2 → 3 columns as the container widens.
+- [List region](https://manwithacat.github.io/hatchi-maxchi/agents/list-region.md): The in-card data table: CSV export, sortable headers, a scrollable table body, and an overflow count.
+- [Task inbox](https://manwithacat.github.io/hatchi-maxchi/agents/task-inbox.md): The personal worklist: filter chips over urgency-flagged items, each a drill link with title and meta.
+- [Tree](https://manwithacat.github.io/hatchi-maxchi/agents/tree.md): Hierarchy on native <details>/<summary> for branches; leaves are plain rows. Chevron is CSS chrome (not summary content). No JS.
+- [Diagram](https://manwithacat.github.io/hatchi-maxchi/agents/diagram.md): A horizontal-scroll wrapper for server-emitted Mermaid source — the library replaces the <pre> with rendered SVG.
+- [Separator](https://manwithacat.github.io/hatchi-maxchi/agents/separator.md): A hairline divider on the border token — horizontal (`<hr>`) or vertical (`role=separator`).
+- [Icon](https://manwithacat.github.io/hatchi-maxchi/agents/icon.md): Inline SVG from a vendored Lucide registry — currentColor, decorative by default. Shown here as the sprite <use> form (one sheet per page).
+
+## Blueprints (full-page layout motifs)
+
+- [Workspace with drawer](https://manwithacat.github.io/hatchi-maxchi/blueprints/workspace-drawer): The app-shell motif: a sidebar of navigation, a content pane with a header cluster and a KPI grid, and a detail drawer on the native <dialog>. The sidebar wraps under the content on narrow screens — no media query anywhere on this page.
+- [Master–detail page](https://manwithacat.github.io/hatchi-maxchi/blueprints/master-detail): The triage motif at page scale: a persistent record list beside a reading-measure detail pane. Selection is a hypermedia exchange — the item hx-gets its card into the pane; the composite wraps in a sidebar layout so the list docks beside the detail on wide screens and stacks above it on narrow ones.
+- [Dashboard](https://manwithacat.github.io/hatchi-maxchi/blueprints/dashboard): KPI tiles in a packing grid, a capacity list with progress bars, and a status cluster — the at-a-glance motif. Column count is entirely intrinsic: the grid packs whatever fits above its minimum tile width.
+- [Auth page](https://manwithacat.github.io/hatchi-maxchi/blueprints/auth): The centred single-card motif: a sign-in form in a reading measure, vertically composed with the stack. The same card works for sign-up, reset, and 2FA steps.
+- [SaaS app shell](https://manwithacat.github.io/hatchi-maxchi/blueprints/saas-shell): The modern SaaS/admin frame: persistent left navigation, a sticky top bar with the collapse toggle, and a ROUTED main workspace — nav links swap only the main slot, so the shell, sidebar state, and scroll survive every navigation. Collapse persists via a cookie the server reads, so first paint is always correct.
+- [Record full page](https://manwithacat.github.io/hatchi-maxchi/blueprints/record-page): The owned-URL home for a record after a drawer peek. Same asset as the drawer hypermedia peek (Aurora Substation), but a full document: KPI grid, tabs, activity, and primary actions — shareable, refreshable, Back-friendly. Peek is GET ?peek=1 fragment; this page is GET /records/{id}.
+- [Ops work queue](https://manwithacat.github.io/hatchi-maxchi/blueprints/ops-queue): The agent job page: KPI pressure strip, a dual-lock review queue with attention rows and inline actions, plus a mutation toast — not a CRUD table of every entity. Mirrors support_tickets ticket_queue.
+- [Triage with drawer](https://manwithacat.github.io/hatchi-maxchi/blueprints/triage-drawer): Master list as a work queue beside a detail drawer: select a row, hx-get a peek fragment into the dialog body, keep the queue mounted. Full page remains a real navigation target.
+- [Manager SLA strip](https://manwithacat.github.io/hatchi-maxchi/blueprints/manager-sla-strip): Metrics-first team home: KPI tiles, a status-list readiness strip, and a critical work queue — the manager job, not a personal assigned list. Mirrors support_tickets manager_ops.
+
+- [CONTRIBUTING](https://github.com/manwithacat/hatchi-maxchi/blob/main/CONTRIBUTING.md): this repo is a synced mirror of the Dazzle monorepo; PRs land via a credited port

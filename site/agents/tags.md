@@ -1,0 +1,119 @@
+# Tags (`tags`)
+
+Multi-value chips + free create — a native text input carrying a comma-joined value, progressively enhanced into a chips UI. JS off: a usable comma-separated text field. JS on: type + Enter/comma creates a chip, blur commits a leftover token, × removes; the native input stays as the submitted value.
+
+> **Layer:** L1 surface · **Recipe:** `multi-label-form` — multi free-form labels
+> Curriculum: `AGENTS.md` · pick matrix: `docs/agent/pick-a-surface.md` · blast radius: `CONSUMER_MAP.md`
+
+> **Dialect:** Partial below is **unprefixed** (gallery / standalone HM). DOM contract Python often uses the **source token** `data-dz-*` / `dz-*` (Dazzle dual-lock). Match the CSS/JS bundle you load.
+
+> **Demo vs contract:** Live gallery behaviour may use `/mock/*` or flash toasts. Those are **offline demos only** — implement **Server exchange** + **DOM contract**, not the mock. See AGENTS.md › Gallery demos.
+
+## Copy this
+
+```html
+<label class="field hm-measure" for="hm-tags-field"><span class="field__label">Labels</span><input id="hm-tags-field" name="labels" type="text" data-tags class="form-input" value="urgent,backend" placeholder="Add a label…"></label>
+```
+
+## Server exchange
+
+This Hyperpart has **no server exchange** — presentation or client chrome only. If you put `hx-*` on a control that uses this markup, that action's exchange belongs to the action, not this part.
+
+## Swap contract
+
+Agent-visible HTMX topology (ADR-0054 / decision 0012). **Exchange envelope** = what the response may re-emit relative to the persistent slot (`body_only` | `outer` | `none` | `host_owned` | `document`). Dual-lock validates part markup only — not this envelope. Stem: `stems/morph-safe-hypermedia.md`.
+
+**No host HTMX exchange** on this part — presentation or client chrome only. **Exchange envelope:** `n/a`.
+
+If a **host** wraps this markup in `hx-*`, **that host owns the swap contract** (sole identity + envelope). Prefer `innerMorph` / `outerMorph` for stable slots; replacement for flash; body-only responses under inner swaps.
+
+### Envelope response examples
+
+What the **server returns** for each exchange. Match the **exchange envelope**; dual-lock still applies to interior markup.
+
+This part has no owned exchange (envelope `n/a`). If a host adds `hx-*`, that host’s envelope applies — typically `body_only`:
+
+```html
+<!-- Prefer hx-swap=innerMorph into a stable body slot -->
+<div class="dz-stack">content…</div>
+```
+
+Do **not** re-own the slot:
+
+```html
+<div id="tags-root" data-dz-region>…</div>
+```
+
+## How to use it
+
+### Seams
+
+- native input value is a comma-joined tag string — the permanent submit shape
+- chips UI rewrites the native input on every add/remove and fires change
+
+### Do / Don't
+
+| Do | Don't |
+|---|---|
+| keep the native input as the form value under the chips root | post a JSON array the server has never seen from a plain field |
+
+### Pitfalls
+
+- JS off: type a, b, c — server splits on comma; do not require the chips UI
+- dedupe/trim/skip-empty on add; paste splits on comma and newline
+
+### Keyboard / AT
+
+- chips are role=list of listitem; each × is labelled Remove {tag}
+- Enter or comma creates a chip; blur commits leftover; Backspace on empty entry removes the last
+
+### Related parts
+
+- `field` — agents/field.md
+
+## DOM contract
+
+What emitted markup must satisfy (CI: `tests/test_contracts.py`). Do not invent attrs outside the tables. Python modules under `contracts/` are **package-internal dual-locks** (`from contracts._kit import …`) — not FastAPI business handlers. App servers implement **Server exchange** endpoints; this section constrains the HTML those endpoints return.
+
+### `contracts/tags.py`
+
+- **Required root:** `[data-dz-tags]` (part `tags`)
+
+| Node | Attr | Constraint |
+|---|---|---|
+| `[data-dz-tags]` | `name` | present (any value) |
+
+#### Ingestion model `TagsField`
+
+| Field | Type | Required |
+|---|---|---|
+| `name` | `string` | yes |
+| `field_id` | `string` | yes |
+| `label` | `string` | yes |
+| `tags` | `array` | no |
+| `placeholder` | `string` | no |
+
+#### Exemplar `render()`
+
+```python
+def render(field: TagsField) -> str:
+    joined = ",".join(field.tags)
+    return (
+        f'<label class="dz-field" for="{html.escape(field.field_id, quote=True)}">'
+        f'<span class="dz-field__label">{html.escape(field.label)}</span>'
+        f'<input id="{html.escape(field.field_id, quote=True)}" '
+        f'name="{html.escape(field.name, quote=True)}" type="text" data-dz-tags '
+        f'class="dz-form-input" value="{html.escape(joined, quote=True)}" '
+        f'placeholder="{html.escape(field.placeholder, quote=True)}"></label>'
+    )
+```
+
+## Notes
+
+Progressive enhancement: the server renders a plain <input type="text" data-dz-tags> whose value is a COMMA-JOINED tag string — usable and submittable with no JS (type a, b, c; the server splits on comma), native required intact. Seeded non-empty values enhance on DOM ready; empty fields enhance on first interaction. dz-tags.js wraps the input in a .dz-tags root — a role="list" of removable chips + a borderless entry — and hides the native input (kept in the DOM as the submitted value). Every add/remove rewrites the native input to the comma-joined chip list and fires change, so the submit shape never changes. Type + Enter or comma creates a chip (trim/dedup/skip-empty); leftover typed text commits on blur (must not vanish — cycle 2131); paste splits on comma/newline; × or Backspace-on-empty removes a chip; add/remove is announced via a visually-hidden aria-live region.
+
+## Source files
+
+- `site/registry.py` (partial + exchanges + guidance)
+- `contracts/tags.py`
+- `controllers/dz-tags.js`

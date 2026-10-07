@@ -1,0 +1,388 @@
+/*
+ * HYPERPART: toast
+ *
+ * Auto-dismissing notifications for the shell toast stack.
+ * Server OOB (`with_toast`) and the client bridge (`dz-toast.js`) share
+ * this markup. Levels key off data-dz-toast-level (info | success |
+ * warning | error). Optional title + action row are slots — message-only
+ * markup remains valid.
+ *
+ * Contract (contracts/toast.py):
+ *   <div id="dz-toast" class="dz-toast-stack" aria-live="polite"
+ *        data-dz-toast-cap="8">
+ *     <div class="dz-toast" data-dz-toast-level="success"
+ *          data-dz-remove-after="8s" role="status">
+ *       <div class="dz-toast__body">
+ *         <div class="dz-toast__title">Saved</div>
+ *         <div class="dz-toast__message">Your changes are live.</div>
+ *         <div class="dz-toast__actions">
+ *           <a class="dz-toast__action" href="/…">View</a>
+ *           <button type="button" class="dz-toast__action"
+ *                   data-dz-toast-dismiss>Dismiss</button>
+ *         </div>
+ *       </div>
+ *       <button type="button" class="dz-toast__close"
+ *               data-dz-toast-dismiss aria-label="Dismiss"></button>
+ *     </div>
+ *   </div>
+ *
+ * Host behaviour (controllers/dz-toast.js): auto-dismiss via
+ * data-dz-remove-after (default 8s), hover/focus pause, stack cap,
+ * enter/leave motion, dismiss clicks.
+ */
+
+/* ── stack — viewport overlay (whole page, not content column) ───── */
+
+.dz-toast-stack {
+  position: fixed;
+  inset-block-start: 1rem;
+  inset-inline-end: 1rem;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-sm);
+  width: min(24rem, calc(100vw - 2rem));
+  max-width: min(24rem, calc(100vw - 2rem));
+  /* Children re-enable hits; empty chrome does not steal clicks. */
+  pointer-events: none;
+}
+
+/* ── toast unit ────────────────────────────────────────────────────── */
+
+.dz-toast {
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-inline: var(--space-md);
+  padding-block: var(--space-md);
+  padding-block-end: calc(var(--space-md) + 2px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--colour-border);
+  border-inline-start-width: 4px;
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  will-change: transform, opacity;
+}
+
+/* TTL progress — host sets animation-duration from data-dz-remove-after. */
+.dz-toast__progress {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 2px;
+  transform-origin: inline-start;
+  background: color-mix(in oklch, var(--colour-text) 28%, transparent);
+  pointer-events: none;
+  animation-name: dz-toast-ttl;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.dz-toast[data-dz-toast-level="info"] .dz-toast__progress {
+  background: color-mix(in oklch, var(--colour-brand) 55%, transparent);
+}
+.dz-toast[data-dz-toast-level="success"] .dz-toast__progress {
+  background: color-mix(in oklch, var(--colour-success) 55%, transparent);
+}
+.dz-toast[data-dz-toast-level="warning"] .dz-toast__progress {
+  background: color-mix(in oklch, var(--colour-warning) 55%, transparent);
+}
+.dz-toast[data-dz-toast-level="error"] .dz-toast__progress {
+  background: color-mix(in oklch, var(--colour-danger) 55%, transparent);
+}
+
+@keyframes dz-toast-ttl {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.dz-toast[data-dz-toast-level="info"] {
+  border-inline-start-color: var(--colour-brand);
+  background: color-mix(in oklch, var(--colour-brand) 6%, var(--colour-surface));
+}
+
+.dz-toast[data-dz-toast-level="success"] {
+  border-inline-start-color: var(--colour-success);
+  background: color-mix(in oklch, var(--colour-success) 6%, var(--colour-surface));
+}
+
+.dz-toast[data-dz-toast-level="warning"] {
+  border-inline-start-color: var(--colour-warning);
+  background: color-mix(in oklch, var(--colour-warning) 6%, var(--colour-surface));
+}
+
+.dz-toast[data-dz-toast-level="error"] {
+  border-inline-start-color: var(--colour-danger);
+  background: color-mix(in oklch, var(--colour-danger) 6%, var(--colour-surface));
+}
+
+/* Level icon — decorative (aria-hidden); severity also on border + progress. */
+.dz-toast-icon,
+.dz-toast__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-block-start: 0.1rem;
+  color: var(--colour-text-muted);
+}
+
+.dz-toast__icon svg,
+.dz-toast-icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  display: block;
+}
+
+.dz-toast[data-dz-toast-level="info"] .dz-toast-icon,
+.dz-toast[data-dz-toast-level="info"] .dz-toast__icon {
+  color: var(--colour-brand);
+}
+
+.dz-toast[data-dz-toast-level="success"] .dz-toast-icon,
+.dz-toast[data-dz-toast-level="success"] .dz-toast__icon {
+  color: var(--colour-success);
+}
+
+.dz-toast[data-dz-toast-level="warning"] .dz-toast-icon,
+.dz-toast[data-dz-toast-level="warning"] .dz-toast__icon {
+  color: var(--colour-warning);
+}
+
+.dz-toast[data-dz-toast-level="error"] .dz-toast-icon,
+.dz-toast[data-dz-toast-level="error"] .dz-toast__icon {
+  color: var(--colour-danger);
+}
+
+.dz-toast__body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.dz-toast__title {
+  font-weight: var(--weight-semibold);
+  color: var(--colour-text);
+  font-size: var(--text-sm);
+}
+
+.dz-toast__subtitle {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--colour-text-muted);
+}
+
+.dz-toast-message,
+.dz-toast__message {
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+}
+
+.dz-toast__title + .dz-toast__message,
+.dz-toast__subtitle + .dz-toast__message {
+  color: var(--colour-text-muted);
+}
+
+/* Person / message composition (decision 0011 phase E) — not a severity. */
+.dz-toast__avatar {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  object-fit: cover;
+  background: color-mix(in oklch, var(--colour-brand) 12%, var(--colour-surface));
+  color: var(--colour-brand);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-block-start: 0.05rem;
+}
+
+.dz-toast__avatar--fallback {
+  border: 1px solid var(--colour-border);
+}
+
+.dz-toast[data-dz-toast-composition="person"] .dz-toast__actor {
+  font-weight: var(--weight-semibold);
+}
+
+/* Swipe-dismiss feedback (host sets inline transform while dragging). */
+.dz-toast {
+  touch-action: pan-y;
+  user-select: none;
+}
+.dz-toast__body,
+.dz-toast__action,
+.dz-toast__close {
+  user-select: text;
+}
+
+.dz-toast__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-sm);
+}
+
+.dz-toast__action {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--colour-brand);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.dz-toast__action:hover {
+  color: var(--colour-text);
+}
+
+.dz-toast__action:focus-visible {
+  outline: 2px solid var(--colour-brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.dz-toast__close {
+  appearance: none;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.25rem -0.25rem 0 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--colour-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 1rem;
+}
+
+.dz-toast__close::before {
+  content: "×";
+  font-weight: var(--weight-semibold);
+}
+
+.dz-toast__close:hover {
+  color: var(--colour-text);
+  background: color-mix(in oklch, var(--colour-text) 8%, transparent);
+}
+
+.dz-toast__close:focus-visible {
+  outline: 2px solid var(--colour-brand);
+  outline-offset: 2px;
+}
+
+/* ── motion (Penguin-shaped: slide in from edge, slide out + fade) ──
+ * Enter ~300ms ease-out; leave ~300ms ease-in. Host waits for leave
+ * before DOM remove (see controllers/dz-toast.js). */
+
+.dz-toast-enter {
+  animation: dz-toast-in var(--duration-slow) var(--ease-out) both;
+}
+
+.dz-toast-leave {
+  animation: dz-toast-out var(--duration-slow) var(--ease-in) both;
+  pointer-events: none;
+}
+
+@keyframes dz-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(1rem) translateY(-0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes dz-toast-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dz-toast-enter,
+  .dz-toast-leave {
+    animation-duration: 1ms;
+  }
+  .dz-toast__progress {
+    /* Still shrink so remaining time is visible, but no enter/leave flourish. */
+    animation-timing-function: linear;
+  }
+}
+
+/* ── gallery live stage (demo chrome only — not product surface) ── */
+
+.hm-toast-stage {
+  min-block-size: 18rem;
+  padding: 1.25rem 1.5rem 2rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--colour-brand) 4%, var(--colour-bg)) 0%,
+      var(--colour-bg) 8rem
+    );
+}
+
+.hm-toast-stage__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-block-end: 1rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--colour-border);
+  font-size: var(--text-sm);
+}
+
+.hm-toast-stage__hint {
+  color: var(--colour-text-muted);
+  font-size: 0.75rem;
+}
+
+.hm-toast-stage__body {
+  max-width: 36rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--colour-text);
+}
+
+.hm-toast-stage__body p {
+  margin: 0 0 1rem;
+}

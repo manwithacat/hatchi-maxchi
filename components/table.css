@@ -1,0 +1,1106 @@
+/* HYPERPART: grid */
+/* ─────────────────────────── outer wrapper ──────────────────────
+ * Table card root — vertical flow of header / toolbar / scroll
+ * container / pagination footer. */
+
+.dz-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  /* TASTE-5: tabular numerals keep data columns optically aligned (Geist
+     ships tnum); harmless no-op on fallback stacks without the feature. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────── toolbar row ────────────────────────
+ * search input / filter chips / bulk actions. Wraps on narrow
+ * containers. */
+
+.dz-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.dz-table-toolbar-filters {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* ─────────────────────────── column visibility menu ─────────────
+ * A native <details> disclosure (the .dz-menu idiom — no open/close
+ * JS); the toggles ride the delegated dz-grid-cols extension (C2.1). */
+
+.dz-table-col-menu {
+  position: relative;
+}
+
+/* The trigger is the <summary> — strip the UA disclosure marker so the
+ * existing button chrome applies cleanly. */
+summary.dz-table-col-menu-trigger {
+  list-style: none;
+}
+summary.dz-table-col-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.dz-table-col-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 1.75rem;
+  padding-inline: var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text-muted);
+  background: var(--colour-bg);
+  border: 1px solid var(--colour-border);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-col-menu-trigger:hover {
+  background: var(--colour-surface);
+}
+
+/* Open state — matches popover triggers (shadcn/DropdownMenu): pressed surface + focus ring. */
+.dz-table-col-menu[open] > .dz-table-col-menu-trigger {
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  border-color: color-mix(in oklch, var(--colour-brand, #2563eb) 45%, var(--colour-border));
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--colour-brand, #2563eb) 22%, transparent);
+}
+
+.dz-table-col-menu-panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-block-start: var(--space-xs);
+  width: 11rem;
+  z-index: 100;
+  background: var(--colour-surface);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding-block: var(--space-xs);
+  overflow: hidden;
+}
+
+.dz-table-col-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-inline: var(--space-md);
+  padding-block: var(--space-xs);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-col-menu-item:hover {
+  background: var(--colour-bg);
+}
+
+/* #853 escape hatch: the "Show all columns" reset at the panel's foot. */
+.dz-table-col-menu-reset {
+  display: block;
+  width: 100%;
+  padding-inline: var(--space-md);
+  padding-block: var(--space-xs);
+  margin-block-start: var(--space-xs);
+  border: none;
+  border-block-start: 1px solid var(--colour-border);
+  background: none;
+  text-align: start;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-col-menu-reset:hover {
+  background: var(--colour-bg);
+  color: var(--colour-text);
+}
+
+.dz-table-col-menu-checkbox {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: var(--radius-sm);
+  accent-color: var(--colour-brand);
+  cursor: pointer;
+}
+
+/* ─────────────────────────── scroll container ───────────────────
+ * Holds the loading overlay + horizontal scroll region + table.
+ * Border + radius + clip live here so the sticky header doesn't
+ * bleed past the rounded corners. */
+
+.dz-table-scroll {
+  position: relative;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  /* Reserve vertical space for the upcoming htmx fetch so the page below
+     doesn't shift when rows arrive (#965 — CLS regression on list views).
+     Floor: `--dz-list-rows` rows × row height + header. The template emits
+     --dz-list-rows from table.page_size; without it we default to 10 rows,
+     which catches the common case (CLS lands cleanly under 0.1 even when
+     actual results are smaller than the reservation). */
+  min-height: calc(min(var(--dz-list-rows, 10), 10) * 2.75rem + 3rem);
+}
+
+.dz-table-scroll-x {
+  overflow-x: auto;
+}
+
+/* ─────────────────────────── loading overlay ────────────────────
+ * #972: switched from Alpine `x-show="loading"` to pure-CSS keyed off
+ * htmx's `.htmx-request` class on the outer dzTable wrapper. The Alpine
+ * binding tripped ADR-0022 (idiomorph evaluates child bindings before
+ * the ancestor x-data scope rebinds on morph). htmx applies
+ * `.htmx-request` to the request-initiating element for the duration
+ * of the in-flight request — that's the cleanest signal here.
+ *
+ * Default state: hidden (no overlay flash on initial paint, replaces
+ * the prior x-cloak guard). htmx adds .htmx-request when a request is
+ * in flight; CSS reveals the overlay. Backdrop blur + dimmed
+ * background + centred spinner. Pointer-events none so the user can
+ * still scroll mid-load. */
+
+.dz-table-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklch, var(--colour-bg) 60%, transparent);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 80ms;
+}
+
+/* htmx applies `.htmx-request` to the element named by hx-indicator
+ * (the SR-only `#{table_id}-loading-sr` inside .dz-table) for the
+ * duration of the in-flight request. `:has()` lets us trigger the
+ * overlay from any descendant — Chrome 105+, Safari 15.4+, Firefox
+ * 121+ all support it. */
+.dz-table:has(.htmx-request) .dz-table-loading {
+  display: flex;
+  opacity: 1;
+}
+
+.dz-table-loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--colour-text-muted);
+  animation: dz-spin 1s linear infinite;
+}
+
+@keyframes dz-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────── the table itself ───────────────────
+ * border-collapse so the sticky-header shadow sits flush. */
+
+.dz-table-grid {
+  width: 100%;
+  /* Fixed layout so text cells can ellipsize against real column widths
+     instead of a hard-coded max-width on .dz-tr-cell-truncate (humanqa
+     trace: titles "Board-visible: migrate hero C…" + dates "21 Jul 20…"). */
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+/* Sticky header — bg + bottom shadow stand in for a 1px border that
+ * collapse would have stripped. */
+.dz-table-th {
+  position: relative;
+  padding-inline: var(--space-md);
+  padding-block: var(--space-sm);
+  text-align: start;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--colour-text-muted);
+  user-select: none;
+}
+
+.dz-table-th-select {
+  width: 2.5rem;
+}
+
+/* Actions is chrome, not a data field: no sort/resize, no data-dz-col.
+ * Width must fit icon cluster AND optional state-transition chips
+ * (humanqa: "Review"/"Done" stacked in 1.75rem squares).
+ * Header uses .dz-table-th + .dz-table-th-actions (visible "Actions" label). */
+.dz-table-th-actions,
+.dz-table-col-actions {
+  width: 11rem;
+  min-width: 7rem;
+  text-align: end;
+  white-space: nowrap;
+}
+
+/* Keep header label flush with the chip strip (both end-aligned). */
+.dz-table-th.dz-table-th-actions {
+  text-align: end;
+}
+
+/* HYPERPART: grid (extension) */
+/* Inline-edit editor elements (dz-grid-edit.js builds these on dblclick —
+ * JS-assigned classNames, so the registry-class gate can't see them). */
+.dz-inline-edit-input {
+  width: 100%;
+  height: 1.75rem;
+  padding-inline: var(--space-sm);
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  background: var(--colour-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--colour-brand);
+  outline: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.dz-inline-edit-input:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--colour-brand) 20%, transparent);
+}
+
+.dz-inline-edit-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dz-inline-edit-select {
+  padding-inline-end: var(--space-lg);
+  appearance: none;
+}
+
+.dz-inline-edit-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  accent-color: var(--colour-brand);
+  cursor: pointer;
+}
+
+.dz-inline-edit-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Date leftover honesty (cycle 2150): native picker + ISO companion.
+ * Rest-state gallery (display spans) is unchanged — editor-only chrome. */
+.dz-inline-edit-date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.dz-inline-edit-date-native {
+  width: auto;
+  min-width: 11ch;
+  flex: 0 0 auto;
+}
+
+.dz-inline-edit-date-iso {
+  flex: 1 1 12ch;
+  min-width: 10ch;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+}
+
+.dz-inline-edit-date-iso:invalid {
+  border-color: var(--colour-danger, var(--colour-destructive, #dc2626));
+}
+
+/* Time leftover honesty (cycle 2153): native clock + ISO companion.
+ * Rest-state gallery (display spans) is unchanged — editor-only chrome. */
+.dz-inline-edit-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.dz-inline-edit-time-native {
+  width: auto;
+  min-width: 11ch;
+  flex: 0 0 auto;
+}
+
+.dz-inline-edit-time-iso {
+  flex: 1 1 12ch;
+  min-width: 10ch;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+}
+
+.dz-inline-edit-time-iso:invalid {
+  border-color: var(--colour-danger, var(--colour-destructive, #dc2626));
+}
+
+/* Number leftover honesty (cycle 2155): native number + decimal companion.
+ * Rest-state gallery (display spans) is unchanged — editor-only chrome. */
+.dz-inline-edit-number {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.dz-inline-edit-number-native {
+  width: auto;
+  min-width: 8ch;
+  flex: 0 0 auto;
+}
+
+.dz-inline-edit-number-out {
+  flex: 1 1 8ch;
+  min-width: 6ch;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+}
+
+.dz-inline-edit-number-out:invalid {
+  border-color: var(--colour-danger, var(--colour-destructive, #dc2626));
+}
+
+/* NB the select-column <col> class (dz-table-col-select, in the grid's
+ * colgroup) is SEMANTIC_ONLY: a structural marker with no rule — the table
+ * stays layout:auto, so the col carries no width. */
+/* Column-resize handle (dz-grid-resize.js extension): an 8px pointer strip
+ * at the header's right edge driving col[data-col] widths via
+ * dz-grid-resize.js. Decorative (aria-hidden); a faint hairline appears on
+ * hover; while a drag is live the root carries data-dz-resizing. */
+.dz-table-resize-handle {
+  position: absolute;
+  top: 0;
+  /* Fully inside the th: a -4px overhang on the LAST column gets clipped by
+   * .dz-table-scroll's overflow:hidden, halving its pointer target. */
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 1;
+}
+
+.dz-table-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 20%;
+  bottom: 20%;
+  right: 1px;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-resize-handle:hover::after,
+[data-dz-resizing] .dz-table-resize-handle::after {
+  background: var(--colour-border);
+}
+
+[data-dz-grid][data-dz-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Touch (coarse pointer): the 8px strip is a mouse-precision target. Widen
+ * the strip to 24px — the web-data-grid touch idiom (an edge slop, not a
+ * 44px HIG block, which would eat half the header) — and keep the hairline
+ * ALWAYS visible: hover doesn't exist on touch, so the affordance must not
+ * depend on it. touch-action:none above already stops the drag being
+ * swallowed by scroll panning. Worst case: at the 80px column minimum the
+ * strip is 30% of the header and the sort label's rightmost text sits under
+ * it — accepted for a user-chosen minimum width. */
+@media (pointer: coarse) {
+  .dz-table-resize-handle {
+    width: 24px;
+  }
+
+  .dz-table-resize-handle::after {
+    background: var(--colour-border);
+  }
+}
+
+/* Sort button — inline within the th when the column is sortable. */
+.dz-table-sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-sort-button:hover {
+  color: var(--colour-text);
+}
+
+/* Sort caret: hidden while the column is unsorted (a faint hint on hover),
+ * revealed + oriented by the th's `aria-sort` — the same attribute the
+ * controller writes and assistive tech reads (no parallel state). chevron-up =
+ * ascending; descending flips it 180deg. */
+.dz-table-sort-icon {
+  /* The caret is decorative (aria-hidden) and must be transparent to
+   * pointer/touch so a tap on the <svg>/<use> icon (a natural target at the
+   * header's right edge) never becomes the click's event.target. On older iOS
+   * Safari an event target inside an SVG <use> can retarget into the use's
+   * shadow content, from which `closest()` cannot escape → the delegated sort
+   * handler receives null and the tap does nothing. Standard hardening for an
+   * icon inside an interactive control: every tap falls through to the
+   * <button>, so event.target is always the button. (Not reproduced locally —
+   * headless WebKit taps the button fine — but a documented older-Safari
+   * failure mode and the correct mitigation regardless.) */
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.dz-table-sort-button:hover .dz-table-sort-icon {
+  opacity: 0.4;
+}
+
+.dz-table-th[aria-sort="ascending"] .dz-table-sort-icon {
+  opacity: 1;
+  transform: none;
+}
+
+.dz-table-th[aria-sort="descending"] .dz-table-sort-icon {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+/* Resize handle — 4px wide vertical strip on the right edge of each
+ * th, shows brand tint on hover. */
+/* Body — divide rows with subtle border-top via adjacent-sibling. */
+.dz-table-body > tr + tr {
+  border-block-start: 1px solid var(--colour-border);
+}
+
+/* ─────────────────────────── empty state ────────────────────────
+ * Visible (via :has selector) when tbody has no data rows. */
+
+.dz-table-empty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block: var(--space-3xl);
+  color: var(--colour-text-muted);
+}
+
+/* Show the empty state only when the preceding table has no body cells (#1450).
+ * The `tbody` is HTMX-loaded and lives INSIDE the `<table class="dz-table-grid">`,
+ * which is a preceding SIBLING of `.dz-table-empty` — so the guard keys off the
+ * grid (`.dz-table-grid ~ .dz-table-empty`), not a non-existent following-sibling
+ * `tbody`. Using `tbody tr td` (any body cell) also drops the brittle
+ * `data-dz-row-id` dependency the old guard required. Populated → no match → base
+ * `display: none` hides it; empty (or pre-load) → shown. */
+.dz-table-grid:not(:has(tbody tr td)) ~ .dz-table-empty {
+  display: flex;
+}
+
+.dz-table-empty-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  opacity: 0.3;
+}
+
+.dz-table-empty-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+  margin: 0;
+}
+
+.dz-table-empty-hint {
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* ─────────────────────────── pagination footer ──────────────────
+ * Wrapper for the pagination fragment (own internal layout). */
+
+.dz-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Registry row-action icons (Phase 3): fixed 14px optical size. */
+.dz-tr-action-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  display: block;
+}
+
+
+/* ── data-table rows / filter bar / bulk actions ─────────────────────
+ * Moved verbatim from Dazzle fragments.css (grid Hyperpart Slice 0b).
+ * The `.dz-table` ancestor selectors here gate the bulk chrome (#978). */
+/* #978: bulk-actions visibility is CSS-driven by `[data-dz-bulk-count]`
+ * on the ancestor grid root — historically the `.dz-table` element (the
+ * gallery), generalized to `[data-dz-grid]` for consumers whose root is a
+ * wrapping region (Dazzle's list <section>, convergence C1.1). The count is
+ * written by dz-grid.js's sync().
+ * Default state: hidden (no flash on initial paint, replaces the prior
+ * Alpine x-cloak guard). Show only when bulkCount > 0. */
+
+.dz-bulk-actions {
+  display: none;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dz-table:not([data-dz-bulk-count="0"]) .dz-bulk-actions,
+[data-dz-grid]:not([data-dz-bulk-count="0"]) .dz-bulk-actions {
+  display: flex;
+}
+
+/* "items" vs "item" — show plural unless count is exactly 1. */
+.dz-bulk-plural {
+  display: inline;
+}
+.dz-table[data-dz-bulk-count="1"] .dz-bulk-plural,
+[data-dz-grid][data-dz-bulk-count="1"] .dz-bulk-plural {
+  display: none;
+}
+
+/* Pagination summary — selected vs row-count visibility, mirrors the
+ * #978 pattern. The two spans render in the same slot; one shows when
+ * the bulk count is positive, the other when it's zero. */
+.dz-bulk-summary-selected {
+  display: none;
+}
+.dz-bulk-summary-rows {
+  display: inline;
+}
+.dz-table:not([data-dz-bulk-count="0"]) .dz-bulk-summary-selected,
+[data-dz-grid]:not([data-dz-bulk-count="0"]) .dz-bulk-summary-selected {
+  display: inline;
+}
+.dz-table:not([data-dz-bulk-count="0"]) .dz-bulk-summary-rows,
+[data-dz-grid]:not([data-dz-bulk-count="0"]) .dz-bulk-summary-rows {
+  display: none;
+}
+
+.dz-bulk-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding-inline: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--colour-danger);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-bulk-delete:hover {
+  background: color-mix(in oklch, var(--colour-danger) 8%, transparent);
+}
+
+.dz-bulk-clear {
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.dz-bulk-clear:hover {
+  color: var(--colour-text);
+}
+
+/* "Select all N matching" — the all-matching escalation affordance. A quiet
+ * brand-coloured text button (it sits between the count and Delete). Hidden
+ * once the mode is active: its job is done, and the header select-all is the
+ * exit. */
+.dz-bulk-matching {
+  font-size: var(--text-sm);
+  color: var(--colour-brand-text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.dz-bulk-matching:hover {
+  text-decoration: underline;
+}
+
+.dz-table[data-dz-grid-all-matching="true"] .dz-bulk-matching,
+[data-dz-grid][data-dz-grid-all-matching="true"] .dz-bulk-matching {
+  display: none;
+}
+
+/* SR-only announcer for result-window changes: the pagination footer is
+ * server-repainted wholesale, so screen readers can't track it — the grid
+ * controller mirrors the summary into this aria-live region instead.
+ * Standard visually-hidden pattern (present in the a11y tree, no pixels). */
+.dz-grid-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─────────────────────────── filter_bar fragment ────────────────
+ * Per-column filter inputs (selects + text + ref-loaded selects).
+ * Outer row layout + label sizing only — inputs use the form
+ * input chrome from form.css. */
+
+.dz-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: flex-end;
+}
+
+.dz-filter-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: 10rem;
+}
+
+.dz-filter-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text-muted);
+}
+
+.dz-filter-select,
+.dz-filter-input {
+  /* min-height (not a hard height) + an explicit padding-block: a fixed
+   * `height: 2rem` on a border-box <select> left only ~14px of content
+   * once the UA's default ~8px vertical padding + 1px borders were
+   * subtracted, clipping the bottom of the text. min-height keeps the
+   * ~2rem look but lets the control grow rather than crop. */
+  box-sizing: border-box;
+  min-height: 2rem;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--colour-border);
+  background-color: var(--colour-surface);
+  padding-inline: var(--space-sm);
+  padding-block: 0.25rem;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--colour-text);
+  outline: none;
+  transition: box-shadow var(--duration-base) var(--ease-out);
+}
+
+/* WebKit ignores min-height on native <select> (#930 / CyFuture
+ * letter filters). Pin height + flatten UA chrome so the line-box
+ * fits; keep a chevron after appearance:none. */
+select.dz-filter-select {
+  height: 2rem;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline-end: 1.5rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  background-size: 0.75rem 0.75rem;
+}
+
+.dz-filter-select:focus-visible,
+.dz-filter-input:focus-visible {
+  box-shadow: 0 0 0 1px var(--colour-brand);
+}
+
+/* ─────────────────────────── table_rows fragment ────────────────
+ * Inline-editable data table rows with bulk-select checkboxes,
+ * per-cell display/edit modes, and hover-revealed action buttons.
+ * Row state matrix:
+ *   - .is-selected  → bulk-select checkbox checked → 10% brand tint
+ *   - .is-saving    → editing.saving → 70% opacity
+ *   - .is-error     → editing.error  → 2px danger left border
+ *   - default       → hover row tint
+ * Alpine `:class="{...}"` binds these modifiers based on its state. */
+
+.dz-tr-row {
+  height: 2.25rem;
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+}
+
+.dz-tr-row:hover {
+  background: var(--colour-surface);
+}
+
+.dz-tr-row.is-selected {
+  background: color-mix(in oklch, var(--colour-brand) 10%, transparent);
+}
+
+.dz-tr-row.is-saving {
+  opacity: 0.7;
+}
+
+.dz-tr-row.is-error {
+  border-inline-start: 2px solid var(--colour-danger);
+}
+
+.dz-tr-checkbox-cell {
+  width: 2.5rem;
+  padding-inline: var(--space-md);
+}
+
+.dz-tr-checkbox {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: var(--radius-sm);
+  accent-color: var(--colour-brand);
+  cursor: pointer;
+}
+
+.dz-tr-cell {
+  padding-inline: var(--space-md);
+  /* Allow flex/grid-like shrink so ellipsis children respect column width */
+  min-width: 0;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.dz-tr-cell.is-numeric {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Identifying text columns take remaining width under table-layout: fixed. */
+.dz-tr-cell[data-dz-col="title"],
+.dz-tr-cell[data-dz-col="name"],
+.dz-tr-cell[data-dz-col="label"],
+.dz-tr-cell[data-dz-col="subject"],
+.dz-table-th[data-dz-col="title"],
+.dz-table-th[data-dz-col="name"],
+.dz-table-th[data-dz-col="label"],
+.dz-table-th[data-dz-col="subject"] {
+  width: auto;
+}
+
+/* Temporal / compact columns: reserve readable width, never mid-label clip. */
+.dz-tr-cell[data-dz-kind="date"],
+.dz-tr-cell[data-dz-kind="datetime"],
+.dz-tr-cell[data-dz-col$="_date"],
+.dz-tr-cell[data-dz-col$="_at"],
+.dz-table-th[data-dz-col$="_date"],
+.dz-table-th[data-dz-col$="_at"],
+.dz-table-th[data-dz-col="due_date"] {
+  width: 8.5rem;
+  white-space: nowrap;
+}
+
+/* Badge/enum columns: wide enough for icon + multi-word labels
+ * ("In Progress", "High") without wrap (humanqa STATUS annotate). */
+.dz-tr-cell[data-dz-kind="badge"],
+.dz-table-th[data-dz-col="status"],
+.dz-table-th[data-dz-col="priority"] {
+  width: 9.5rem;
+  min-width: 8.5rem;
+  white-space: nowrap;
+}
+
+.dz-tr-cell[data-dz-kind="badge"] .dz-badge {
+  max-width: 100%;
+}
+
+.dz-tr-cell[data-dz-kind="ref"] {
+  width: 7rem;
+}
+
+.dz-tr-cell-display {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  padding-inline: 0.25rem;
+  margin-inline: -0.25rem;
+  padding-block: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: outline var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+  /* double-tap must open the editor, not zoom (dblclick on touch) */
+  touch-action: manipulation;
+}
+
+/*
+ * Drillable rows (hx-get on <tr>): the row owns the bare click (#1592/#1598).
+ * The edit display must NOT look/act like a text field — a hover outline +
+ * cursor:text made the title box intercept perceived row interaction
+ * (humanqa LATEST_TRACE: click title → no drill). Keep edit on dblclick only.
+ */
+.dz-tr-row[hx-get] .dz-tr-cell-display,
+.dz-tr-row[hx-get] .dz-tr-cell-truncate {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dz-tr-row[hx-get] .dz-tr-cell-display:hover {
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+/* Non-drill lists (no row hx-get): keep a light edit-target affordance. */
+.dz-tr-row:not([hx-get]) .dz-tr-cell-display:hover {
+  outline: 1px solid var(--colour-border);
+  cursor: text;
+}
+
+/* Truncate spans fill the cell — no fixed 15rem cap (that forced early
+   ellipsis while neighbour columns still had free space). */
+.dz-tr-cell-truncate {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Date/datetime (and common temporal col keys): never ellipsize calendar days
+   (fleet/humanqa: "21 Jul 20…"). Covers display wrapper AND truncate child. */
+.dz-tr-cell[data-dz-kind="date"] .dz-tr-cell-truncate,
+.dz-tr-cell[data-dz-kind="datetime"] .dz-tr-cell-truncate,
+.dz-tr-cell[data-dz-col$="_date"] .dz-tr-cell-truncate,
+.dz-tr-cell[data-dz-col$="_at"] .dz-tr-cell-truncate,
+.dz-table-td[data-type="date"] .dz-tr-cell-truncate,
+.dz-table-td[data-type="datetime"] .dz-tr-cell-truncate,
+.dz-tr-cell[data-dz-kind="date"] .dz-tr-cell-display,
+.dz-tr-cell[data-dz-kind="datetime"] .dz-tr-cell-display,
+.dz-tr-cell[data-dz-col$="_date"] .dz-tr-cell-display,
+.dz-tr-cell[data-dz-col$="_at"] .dz-tr-cell-display,
+.dz-tr-cell:has([data-dz-edit-kind="date"]) .dz-tr-cell-display,
+.dz-tr-cell:has([data-dz-edit-kind="date"]) .dz-tr-cell-truncate {
+  max-width: none;
+  min-width: 7rem;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.dz-tr-actions-cell {
+  width: 11rem;
+  min-width: 7rem;
+  padding-inline: var(--space-sm);
+  text-align: end;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Full-cell flex so chips sit under the right-aligned ACTIONS header
+ * (inline-flex + text-align was inconsistent — humanqa annotate). */
+.dz-tr-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  /* Icon affordances stay hover-reveal; transition chips stay visible so
+   * state moves are discoverable without hunting empty chrome. */
+  opacity: 1;
+}
+
+/*
+ * Resting state: icon-only chrome must leave the flow (not just opacity:0).
+ * Opacity-hidden icons still occupied 1.75rem each → chips looked left-stacked
+ * under a right-aligned ACTIONS title (humanqa perception mismatch).
+ *
+ * Exception: `.dz-tr-peek-toggle` is disclosure chrome — always visible so
+ * expand is discoverable without hunting hover (humanqa expand inconsistency).
+ */
+.dz-tr-row:not(:hover):not(:focus-within)
+  .dz-tr-action:not(.dz-tr-transition):not(.dz-tr-peek-toggle) {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
+  max-width: 0;
+  height: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.dz-tr-row:hover .dz-tr-action,
+.dz-tr-row:focus-within .dz-tr-action {
+  opacity: 1;
+}
+
+.dz-tr-row:hover .dz-tr-action:not(.dz-tr-transition),
+.dz-tr-row:focus-within .dz-tr-action:not(.dz-tr-transition) {
+  width: 1.75rem;
+  min-width: 1.75rem;
+  max-width: 1.75rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  pointer-events: auto;
+}
+
+/* Expand affordance: always on (not hover-collapsed). */
+.dz-tr-action.dz-tr-peek-toggle {
+  opacity: 1;
+  width: 1.75rem;
+  min-width: 1.75rem;
+  max-width: 1.75rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  pointer-events: auto;
+}
+
+.dz-tr-peek-chevron {
+  transition: transform var(--duration-fast, 0.15s) var(--ease-out, ease);
+}
+
+.dz-tr-peek-toggle[aria-expanded="true"] .dz-tr-peek-chevron {
+  transform: rotate(180deg);
+}
+
+/* Peek panel empty / denied body (auth miss, 403) — not a nested surface. */
+.dz-tr-peek-empty {
+  padding: var(--space-md, 1rem);
+  color: var(--colour-text-muted, #64748b);
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.dz-tr-peek-panel .dz-tr-peek-cell {
+  padding: 0;
+  background: color-mix(in oklch, var(--colour-bg, #f8fafc) 92%, var(--colour-border, #e2e8f0));
+  border-block-end: 1px solid var(--colour-border, #e2e8f0);
+}
+
+.dz-tr-peek-panel .dz-tr-peek-cell > .dz-region,
+.dz-tr-peek-panel .dz-tr-peek-cell > .dz-stack {
+  padding: var(--space-md, 1rem);
+}
+
+/* Icon-only row chrome (view / edit / delete / peek). */
+.dz-tr-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  color: var(--colour-text-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  transition: background var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+  text-decoration: none;
+}
+
+/* State-machine transitions are *labels*, not icons — never force square. */
+.dz-tr-action.dz-tr-transition {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 1.5rem;
+  padding: 0.125rem 0.4rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  border: 1px solid var(--colour-border);
+  background: var(--colour-surface, var(--colour-bg));
+  color: var(--colour-text);
+  border-radius: var(--radius-sm);
+}
+
+.dz-tr-action.dz-tr-transition:hover {
+  border-color: var(--colour-brand);
+  background: color-mix(in oklch, var(--colour-brand) 8%, transparent);
+  color: var(--colour-text);
+}
+
+.dz-tr-action:hover {
+  background: color-mix(in oklch, var(--colour-bg) 50%, transparent);
+  color: var(--colour-text);
+}
+
+.dz-tr-action.is-destructive:hover {
+  background: color-mix(in oklch, var(--colour-danger) 10%, transparent);
+  color: var(--colour-danger);
+}
+
+.dz-tr-action-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Empty-state row spans the full table */
+.dz-tr-empty-cell {
+  text-align: center;
+  padding-block: var(--space-2xl);
+  font-size: var(--text-sm);
+  color: var(--colour-text-muted);
+}
+
+.dz-tr-empty-link {
+  margin-inline-start: var(--space-sm);
+  color: var(--colour-brand);
+  text-decoration: none;
+}
+
+.dz-tr-empty-link:hover {
+  text-decoration: underline;
+}

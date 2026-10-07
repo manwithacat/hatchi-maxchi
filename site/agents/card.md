@@ -1,0 +1,117 @@
+# Card (`card`)
+
+Bordered surface with a resting stacked shadow. Content classes (label / value / delta) build KPI tiles; compose several in auto-grid so each card keeps a natural width instead of stretching full-bleed across the preview.
+
+> **Layer:** L2 host · **Recipe:** _(unset — see docs/agent/pick-a-surface.md)_
+> Curriculum: `AGENTS.md` · pick matrix: `docs/agent/pick-a-surface.md` · blast radius: `CONSUMER_MAP.md`
+
+> **Dialect:** Partial below is **unprefixed** (gallery / standalone HM). DOM contract Python often uses the **source token** `data-dz-*` / `dz-*` (Dazzle dual-lock). Match the CSS/JS bundle you load.
+
+> **Demo vs contract:** Live gallery behaviour may use `/mock/*` or flash toasts. Those are **offline demos only** — implement **Server exchange** + **DOM contract**, not the mock. See AGENTS.md › Gallery demos.
+
+## Copy this
+
+```html
+<!-- icons: include the icon sheet once per page (see the Setup section, #setup) -->
+<div class="auto-grid" style="--grid-min: 11rem">
+  <div class="card card-body">
+    <div class="card-label">Total Revenue</div>
+    <div class="card-value">£1,250.00</div>
+    <div class="card-delta"><svg class="icon" aria-hidden="true"><use href="#i-trending-up"/></svg> +12.5% this month</div>
+  </div>
+  <div class="card card-body">
+    <div class="card-label">Open invoices</div>
+    <div class="card-value">18</div>
+    <div class="card-delta"><svg class="icon" aria-hidden="true"><use href="#i-trending-down"/></svg> −3 vs last week</div>
+  </div>
+  <div class="card card-body">
+    <div class="card-label">Avg. days to pay</div>
+    <div class="card-value">24</div>
+    <div class="card-delta"><svg class="icon" aria-hidden="true"><use href="#i-trending-up"/></svg> +2 days</div>
+  </div>
+</div>
+```
+
+## Server exchange
+
+This Hyperpart has **no server exchange** — presentation or client chrome only. If you put `hx-*` on a control that uses this markup, that action's exchange belongs to the action, not this part.
+
+## Swap contract
+
+Agent-visible HTMX topology (ADR-0054 / decision 0012). **Exchange envelope** = what the response may re-emit relative to the persistent slot (`body_only` | `outer` | `none` | `host_owned` | `document`). Dual-lock validates part markup only — not this envelope. Stem: `stems/morph-safe-hypermedia.md`.
+
+**No host HTMX exchange** on this part — presentation or client chrome only. **Exchange envelope:** `n/a`.
+
+If a **host** wraps this markup in `hx-*`, **that host owns the swap contract** (sole identity + envelope). Prefer `innerMorph` / `outerMorph` for stable slots; replacement for flash; body-only responses under inner swaps.
+
+### Envelope response examples
+
+What the **server returns** for each exchange. Match the **exchange envelope**; dual-lock still applies to interior markup.
+
+This part has no owned exchange (envelope `n/a`). If a host adds `hx-*`, that host’s envelope applies — typically `body_only`:
+
+```html
+<!-- Prefer hx-swap=innerMorph into a stable body slot -->
+<div class="dz-stack">content…</div>
+```
+
+Do **not** re-own the slot:
+
+```html
+<div id="card-root" data-dz-region>…</div>
+```
+
+## How to use it
+
+No extended guidance authored yet — start from Copy this and the dependency chips.
+
+### Seams
+
+- copy the partial under Copy this; keep root class and data-* modifiers so the CSS/JS bundle matches
+- no Server exchange on this part — pure presentation or client chrome
+- satisfy the DOM contract tables (CI stop-ship)
+
+## DOM contract
+
+What emitted markup must satisfy (CI: `tests/test_contracts.py`). Do not invent attrs outside the tables. Python modules under `contracts/` are **package-internal dual-locks** (`from contracts._kit import …`) — not FastAPI business handlers. App servers implement **Server exchange** endpoints; this section constrains the HTML those endpoints return.
+
+### `contracts/card.py`
+
+- **Required root:** `.dz-card` (part `card`)
+
+| Node | Attr | Constraint |
+|---|---|---|
+| `.dz-card` | `—` | — |
+
+#### Module source
+
+Monorepo dual-lock only — import `contracts._kit` from the HM package. Do not paste into app route modules.
+
+```python
+"""HYPERPART: card — bordered surface wrapping content.
+
+Dual-lock unit is the surface root. Header/body/footer slots and BEM
+token modifiers (``dz-card--radius-*`` etc.) are host-owned. Gallery KPI
+tiles use ``dz-card`` + content classes; substrate ``Card`` emits
+``dz-card`` + optional ``dz-card__header|body|footer``.
+"""
+
+from contracts._kit import DomContract, Node
+
+DOM_CONTRACT = DomContract(
+    part="card",
+    root=".dz-card",
+    nodes=(Node(".dz-card", attrs={}),),
+)
+
+__all__ = ["DOM_CONTRACT"]
+```
+
+## Notes
+
+A card is a surface, not a layout. One card in a full-width preview looks clumsy because the box stretches; real use is several cards in auto-grid (or a stack of content cards). Workspace dashboard cards add data-display for CLS height reservation — static KPI tiles omit it and size to content. Classes: dz-card + dz-card-body + dz-card-label / dz-card-value / dz-card-delta.
+
+## Source files
+
+- `site/registry.py` (partial + exchanges + guidance)
+- `contracts/card.py`

@@ -1,0 +1,150 @@
+# Pagination (`pagination`)
+
+The footer beneath a data table — a summary and page buttons. Each button hx-gets a page into the list body (an Exchange, not a widget).
+
+> **Layer:** L1 surface · **Recipe:** _(unset — see docs/agent/pick-a-surface.md)_
+> Curriculum: `AGENTS.md` · pick matrix: `docs/agent/pick-a-surface.md` · blast radius: `CONSUMER_MAP.md`
+
+> **Dialect:** Partial below is **unprefixed** (gallery / standalone HM). DOM contract Python often uses the **source token** `data-dz-*` / `dz-*` (Dazzle dual-lock). Match the CSS/JS bundle you load.
+
+> **Demo vs contract:** Live gallery behaviour may use `/mock/*` or flash toasts. Those are **offline demos only** — implement **Server exchange** + **DOM contract**, not the mock. See AGENTS.md › Gallery demos.
+
+## Copy this
+
+```html
+<div class="hm-stack hm-measure-lg">
+  <div id="hm-pag-body" class="hm-pag-list">
+    <div class="hm-pag-row">INV-001 · Acme</div>
+    <div class="hm-pag-row">INV-002 · Globex</div>
+    <div class="hm-pag-row">INV-003 · Initech</div>
+  </div>
+  <div class="pagination" data-pagination data-grid-pagination data-grid-total="42" aria-label="Pagination">
+    <span class="pagination-summary"><span class="bulk-summary-selected"><span data-bulk-count-target>0</span> of 42 selected</span><span class="bulk-summary-rows">42 rows</span></span>
+    <div class="pagination-pages"><button class="pagination-page" disabled aria-label="Previous page">‹</button><button class="pagination-page is-current" aria-current="page">1</button><button class="pagination-page" hx-get="/mock/pagination/2" hx-target="#hm-pag-body" hx-swap="innerHTML">2</button><button class="pagination-page" hx-get="/mock/pagination/3" hx-target="#hm-pag-body" hx-swap="innerHTML">3</button><span class="pagination-ellipsis" aria-hidden="true">…</span><button class="pagination-page" hx-get="/mock/pagination/9" hx-target="#hm-pag-body" hx-swap="innerHTML">9</button><button class="pagination-page" hx-get="/mock/pagination/2" hx-target="#hm-pag-body" hx-swap="innerHTML" aria-label="Next page">›</button></div>
+  </div>
+</div>
+```
+
+## Server exchange
+
+When the client affordance finishes, htmx issues **this** request. Return the **response fragment** in the table (usually HTML, not JSON). Dazzle often implements these from the app model; a standalone HTMX4 app implements them explicitly.
+
+> **Do not reimplement the gallery.** Flash toasts (e.g. confirm’s > “Deleted (demo).”), `/mock/*` paths, and other static-site > scaffolding are **demo-only** (`MOCK_HTMX` in `site/build_site.py`). > They are not Hyperpart surface and not a product API. If you are > stuck making a toast or mock URL work, stop — implement the > exchange row below instead. See AGENTS.md › *Gallery demos are not > the product API*.
+
+| Request | Trigger | Response fragment | Swap | Envelope | States |
+|---|---|---|---|---|---|
+| `GET /app/{region}?page={n}&page_size={size}` | a page button, on click | the list body fragment for page n — the rows the region renders, with the current-page button marked `is-current` + `aria-current='page'` | innerMorph of the region's body (`#{region}-body`) | `body_only` | loading populated error |
+
+## Swap contract
+
+Agent-visible HTMX topology (ADR-0054 / decision 0012). **Exchange envelope** = what the response may re-emit relative to the persistent slot (`body_only` | `outer` | `none` | `host_owned` | `document`). Dual-lock validates part markup only — not this envelope. Stem: `stems/morph-safe-hypermedia.md`.
+
+Gallery mocks may approximate morph with `innerHTML` — production follows the swap column in **Server exchange**.
+
+### Exchanges (swap · envelope)
+
+- `GET /app/{region}?page={n}&page_size={size}` → innerMorph of the region's body (`#{region}-body`) · **envelope=`body_only`**
+
+### Morph (persistent region)
+
+- `GET /app/{region}?page={n}&page_size={size}` → body_only
+
+### Envelope rules
+
+- **`body_only`** — innerHTML / innerMorph into a slot; response is interior only (no re-wrap of slot id / nested `data-dz-region`).
+- **`outer`** — outerHTML / outerMorph; response may carry identity.
+- **`none`** — no HTML swap (JSON/204/bytes; client or OOB companion).
+- **`host_owned`** — swap target/mode chosen by the host button's `hx-target` / `hx-swap` (part does not fix the envelope).
+- **`document`** — full navigation / document load (not a fragment).
+- Slot owns stable `id` / domain keys; state in DOM, not Alpine.
+
+### Envelope response examples
+
+What the **server returns** for each exchange. Match the **exchange envelope**; dual-lock still applies to interior markup.
+
+#### `GET /app/{region}?page={n}&page_size={size}` · envelope=`body_only`
+
+Correct response for body_only into #{region}-body (innerHTML / innerMorph). Wrong: re-wrapping the slot.
+
+**Do — correct response body**
+
+```html
+<!-- envelope=body_only → rows/interior only into #{region}-body -->
+<div class="dz-list-row">INV-041 · Acme</div>
+<div class="dz-list-row">INV-042 · Globex</div>
+<!-- optional OOB footer — not a second region chrome -->
+```
+
+**Don’t — violates `body_only`**
+
+```html
+<!-- WRONG: re-wraps the slot / nests data-dz-region under innerMorph -->
+<div id="invoice_queue-body" data-dz-region data-dz-region-name="invoice_queue">
+  <div class="dz-list-row">INV-041 · Acme</div>
+</div>
+```
+
+## How to use it
+
+No extended guidance authored yet — start from Copy this and the dependency chips.
+
+### Seams
+
+- copy the partial under Copy this; keep root class and data-* modifiers so the CSS/JS bundle matches
+- implement Server exchange endpoints; return HTML fragments, not JSON
+- satisfy the DOM contract tables (CI stop-ship)
+
+## DOM contract
+
+What emitted markup must satisfy (CI: `tests/test_contracts.py`). Do not invent attrs outside the tables. Python modules under `contracts/` are **package-internal dual-locks** (`from contracts._kit import …`) — not FastAPI business handlers. App servers implement **Server exchange** endpoints; this section constrains the HTML those endpoints return.
+
+### `contracts/pagination.py`
+
+- **Required root:** `[data-dz-pagination]` (part `pagination`)
+
+| Node | Attr | Constraint |
+|---|---|---|
+| `[data-dz-pagination]` | `data-dz-pagination` | present (any value) |
+| `[data-dz-pagination]` | `data-dz-grid-pagination` | present (any value) |
+| `[data-dz-pagination]` | `data-dz-grid-total` | present (any value) |
+
+#### Ingestion model `Pagination`
+
+| Field | Type | Required |
+|---|---|---|
+| `total` | `integer` | no |
+| `pages_html` | `string` | no |
+| `rows_label` | `string` | no |
+
+#### Exemplar `render()`
+
+```python
+def render(p: Pagination) -> str:
+    """Model → pagination footer. Empty total + empty pages → \"\"."""
+    if p.total <= 0 and not p.pages_html:
+        return ""
+    if not p.pages_html:
+        return ""
+    label = p.rows_label or ("row" if p.total == 1 else "rows")
+    return (
+        f'<div class="dz-pagination" data-dz-pagination data-dz-grid-pagination '
+        f'data-dz-grid-total="{p.total}">'
+        f'<span class="dz-pagination-summary">'
+        f'<span class="dz-bulk-summary-selected">'
+        f"<span data-dz-bulk-count-target>0</span> of {p.total} selected"
+        f"</span>"
+        f'<span class="dz-bulk-summary-rows">{p.total} {label}</span>'
+        f"</span>"
+        f'<div class="dz-pagination-pages">{p.pages_html}</div>'
+        f"</div>"
+    )
+```
+
+## Notes
+
+Dual-lock root is data-dz-pagination (contracts/pagination.py) plus data-dz-grid-pagination / data-dz-grid-total for grid selection. Production swaps use innerMorph of the region body (#{region}-body) so selection and focus can survive page changes. Each page button carries its own hx-get; leftover-honest include_closed / as_of ride that hx-get (cycle 2175) — dropping them invents open-only / current after a page click. Rest-state gallery omits them (oral #33). Here the gallery mock approximates with innerHTML into #hm-pag-body.
+
+## Source files
+
+- `site/registry.py` (partial + exchanges + guidance)
+- `contracts/pagination.py`

@@ -1,0 +1,73 @@
+# Deploys the component gallery (site/) to GitHub Pages.
+#
+# This workflow lives INSIDE the package prefix, so it is inert in the
+# Dazzle monorepo (GitHub only reads the repo-root .github/) and becomes
+# the standalone repo's CI after `git subtree split`. The gallery is a
+# committed build artifact — no build step needed here; rebuilds happen
+# in-tree in Dazzle (`python packages/hatchi-maxchi/site/build_site.py`)
+# and arrive via subtree pushes.
+name: Deploy gallery to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Queue deployments, don't cancel — cancelling a deploy mid-flight can
+# leave the Pages pipeline in a state that makes the next attempt fail
+# with "Deployment failed, try again later" (the GitHub-recommended
+# setting for deployment concurrency).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      # First non-empty URL across the deploy attempts below.
+      url: >-
+        ${{ steps.deploy1.outputs.page_url
+        || steps.deploy2.outputs.page_url
+        || steps.deploy3.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: site
+
+      # actions/deploy-pages creates a deployment then polls its status.
+      # GitHub Pages' backend intermittently returns a TERMINAL "Deployment
+      # failed, try again later" within seconds — the action's own polling
+      # doesn't help (the deployment is already failed), only a FRESH
+      # deployment does. An immediate retry is useless when the outage
+      # window is longer than the gap between attempts, so retries are
+      # spaced with real backoff. Each attempt reuses the single uploaded
+      # artifact (no re-upload → no "multiple artifacts" error, which is
+      # what re-running a whole failed run causes — don't do that; push or
+      # dispatch a fresh run instead).
+      - id: deploy1
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5.0.0
+        continue-on-error: true
+
+      - if: steps.deploy1.outcome == 'failure'
+        run: sleep 30
+      - id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5.0.0
+        continue-on-error: true
+
+      - if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 60
+      - id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        # NOT continue-on-error: the third attempt gates the job. If it
+        # too fails, Pages is having a real incident — fail loudly.
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128  # v5.0.0

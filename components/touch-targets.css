@@ -1,0 +1,61 @@
+/*
+ * touch-targets.css — mobile touch hit-area enforcement (#958 cycle 1).
+ *
+ * Bumps every interactive primitive's min-height + min-width to
+ * `--dz-touch-target-min` (44px, Apple HIG) on touch devices. Desktop
+ * keeps its dense pixel-perfect sizing.
+ *
+ * Why `@media (pointer: coarse)` rather than `(max-width: ...)`?
+ *   - Touch tablets in landscape look "wide" to width queries but
+ *     still need the bigger hit area.
+ *   - Mouse users on small windows DON'T need 44px buttons (precise
+ *     pointer).
+ *   - `pointer: coarse` is the explicit "primary input is finger"
+ *     signal, supported in all modern browsers.
+ *
+ * Selectors covered:
+ *   - `.dz-button` (and primary/ghost/outline/destructive variants)
+ *   - `.dz-icon-button`
+ *   - `.dz-card-action-button`
+ *   - `.dz-list-csv-button` (list-region CSV export, 28px at rest)
+ *   - `.dz-sidebar-action-button`
+ *   - `.dz-add-card-button`
+ *   - Close buttons: `.dz-drawer__close`, `.dz-pdf-viewer-help-close`,
+ *     `.dz-pdf-viewer-panel-close`
+ *
+ * Wrapped in @layer components so component-specific rules win when
+ * they need to.
+ */
+@layer components {
+  @media (pointer: coarse) {
+    /* .dz-button covers every button — variants are data-dz-variant on the
+       same base element, so no per-variant selector is needed here. */
+    .dz-button,
+    .dz-icon-button,
+    .dz-card-action-button,
+    .dz-list-csv-button,
+    .dz-sidebar-action-button,
+    .dz-add-card-button {
+      min-height: var(--dz-touch-target-min);
+      min-width: var(--dz-touch-target-min);
+    }
+
+    /* Close-X buttons are typically small icon-only — most likely
+     * to under-deliver hit area. Bump explicitly. */
+    .dz-drawer__close,
+    .dz-pdf-viewer-help-close,
+    .dz-pdf-viewer-panel-close {
+      min-height: var(--dz-touch-target-min);
+      min-width: var(--dz-touch-target-min);
+    }
+
+    /* Bare native buttons / links inside .dz-button regions still
+     * benefit — a `<button>` without a Dazzle class shouldn't fall
+     * below 44px on touch. */
+    button,
+    [role="button"],
+    a.dz-link {
+      min-height: var(--dz-touch-target-min);
+    }
+  }
+}

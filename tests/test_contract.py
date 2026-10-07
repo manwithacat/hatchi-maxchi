@@ -1,0 +1,551 @@
+"""Console-domain regression gates — no browser needed.
+
+1. Every ``dz-*`` class used in the registry's canonical HTML has a rule
+   in the built bundle (the "no unstyled published markup" contract).
+2. The committed gallery CSS equals a fresh ``build_css()`` — catches
+   editing component CSS without rebuilding the gallery.
+3. The prefix transform is total: no ``dz-`` survives ``--prefix ax-``.
+"""
+
+import re
+import sys
+from pathlib import Path
+
+PKG = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PKG))
+sys.path.insert(0, str(PKG / "site"))
+
+from blueprints import BLUEPRINTS  # noqa: E402
+from build import build_css, build_js  # noqa: E402
+from registry import HYPERPARTS  # noqa: E402
+
+# hx-* attributes that make a server request (each REQUIRES a declared
+# Exchange). hx-confirm is a client affordance (no round-trip) → exempt.
+_REQUEST_ATTR_RE = re.compile(r'hx-(get|post|put|patch|delete)="([^"]+)"')
+
+# Extension affordances that request OUTSIDE htmx (a raw fetch on a
+# controller seam) — attribute → HTTP method. The inline-edit extension
+# commits `PUT {data-dz-grid-edit-url}/{id}`; declaring the attribute in a
+# partial is making that request, so it needs (and satisfies) an Exchange.
+_EXTENSION_REQUEST_ATTRS = {
+    "data-dz-grid-edit-url": "PUT",
+    # the pdf Hyperpart's bytes exchange: PDF.js (not htmx) fetches the
+    # data-dz-pdf-src URL — declaring the attribute IS making GETs.
+    "data-dz-pdf-src": "GET",
+    # kanban rearrange (dz-kanban.js): raw fetch PUT to data-dz-kanban-api/{id}
+    # then GET data-dz-kanban-src for region refresh — not hx-* on the partial.
+    "data-dz-kanban-api": "PUT",
+    "data-dz-kanban-src": "GET",
+}
+
+
+def _methods_in_markup(partial: str) -> set[str]:
+    methods = {m.upper() for m, _ in _REQUEST_ATTR_RE.findall(partial)}
+    for attr, method in _EXTENSION_REQUEST_ATTRS.items():
+        if attr + "=" in partial:
+            methods.add(method)
+    return methods
+
+
+# Structural wrappers that intentionally carry no rule of their own
+# (styled via inheritance / parent selectors). Additions here need a
+# comment in the component's CSS explaining why.
+SEMANTIC_ONLY = {
+    "dz-alert__body",
+    # dz-empty-state__description removed 2026-07-09: it gained a style rule
+    # (color + font-size) when the detail-view empty-state was folded into HM
+    # (HMC-003c), so it is no longer semantic-only.
+    # tab panel container: identity for the controller + a swap target; its
+    # visibility rides the native `hidden` attribute, so it carries no rule.
+    "dz-tabs__panel",
+    # the select-column <col> in the grid's colgroup: a structural marker so
+    # the resize/visibility extensions can address data cols by exclusion —
+    # the table stays layout:auto, so the col itself needs no width rule.
+    "dz-table-col-select",
+    # region-body wrappers (W1): the workspace card slot provides the box;
+    # these wrappers are the emitters' structural anchors and have never
+    # carried rules (verbatim from Dazzle, where they were also rule-less).
+    "dz-status-list-region",
+    "dz-action-grid-region",
+    "dz-queue-region",
+    "dz-timeline-region",
+    "dz-funnel-chart-region",
+    "dz-bar-chart-region",
+    "dz-heatmap-region",
+    "dz-bullet-region",
+    "dz-pivot-region",
+    # dz-bar-track-region removed from SEMANTIC_ONLY — it gained grid
+    # column-stop rules with the summary-alignment fix.
+    "dz-histogram-region",
+    "dz-box-plot-region",
+    "dz-progress-region",
+    "dz-line-chart-region",
+    "dz-area-chart-region",
+    "dz-radar-region",
+    "dz-profile-card-region",
+    "dz-grid-region",
+    "dz-list-region",
+    "dz-task-inbox-region",  # dual-lock root; chips/items own styling
+    "dz-cohort-strip-region",  # dual-lock root; lenses/cells own styling
+    "dz-day-timeline-region",  # dual-lock root; slots own styling
+    "dz-entity-card-region",  # dual-lock root; sections own styling
+    "dz-pipeline-steps-region",  # dual-lock root; stages own styling
+    # wizard stage block: visibility rides the native `hidden` attribute
+    # (dz-wizard.js); the fields inside carry the styling.
+    "dz-wizard-stage",
+    # money widget root: the data-dz-money marker + scale attribute are
+    # the contract; the styled box is the inner dz-form-money-group.
+    "dz-money",
+    # search-box results container: the htmx swap target + aria-live
+    # region — pure structure, its children (count/list/rows) carry the
+    # styling.
+    "dz-search-box-results",
+    # task-inbox item skeleton (items/link/body/title/meta/empty) gained
+    # rules in cycle 1355 coherence drain (list-style + flex row/urgency
+    # tones) — removed from SEMANTIC_ONLY when styles landed.
+}
+
+
+def _all_partials():
+    """Every published markup string — Hyperpart demos AND Blueprint pages
+    (a typo'd class in either ships unstyled to every consumer)."""
+    for c in HYPERPARTS:
+        yield c.id, c.partial
+    for bp in BLUEPRINTS:
+        yield f"blueprint:{bp.id}", bp.partial
+
+
+def _used_classes() -> set[str]:
+    used: set[str] = set()
+    for _pid, partial in _all_partials():
+        for m in re.finditer(r'class="([^"]+)"', partial):
+            used.update(cls for cls in m.group(1).split() if cls.startswith("dz-"))
+    return used
+
+
+def test_every_registry_class_has_a_rule() -> None:
+    # Registry partials carry the dz- SOURCE form; check against the dz-
+    # build (the published default is unprefixed, but the source is dz-).
+    css = build_css("dz-")
+    missing = sorted(
+        cls for cls in _used_classes() if f".{cls}" not in css and cls not in SEMANTIC_ONLY
+    )
+    assert not missing, (
+        f"registry HTML uses classes with no rule in the bundle: {missing}. "
+        "Style them or (if genuinely structural) add to SEMANTIC_ONLY with a comment."
+    )
+
+
+def test_public_css_props_follow_the_prefix() -> None:
+    """Custom-property KNOBS that consumers set (inline in snippets, or
+    server-emitted like the list row floor) are public API — they must
+    follow the namespace prefix exactly like classes/data-attributes/
+    keyframes do. Internal tokens keep their source names (private).
+
+    The 2026-07-06 case: the progress demo showed
+    `style="--dz-progress-value:62%"` against an otherwise unprefixed
+    gallery — the one place the source namespace leaked into the
+    published artifact."""
+    from build import PUBLIC_CSS_PROPS
+
+    stripped = build_css("")
+    renamed = build_css("ax-")
+    kept = build_css("dz-")
+    for prop in PUBLIC_CSS_PROPS:
+        bare = prop.removeprefix("--dz-")
+        assert f"--dz-{bare}" not in stripped, f"{prop} must strip with the prefix"
+        assert f"--{bare}" in stripped, f"--{bare} missing from the stripped bundle"
+        assert f"--ax-{bare}" in renamed, f"{prop} must follow a custom prefix"
+        assert f"--dz-{bare}" in kept, f"{prop} must survive the dz- (no-op) build"
+
+
+def test_no_private_css_prop_leaks_into_snippets() -> None:
+    """A registry partial (the copy-paste snippet) may only reference
+    custom properties declared public — a private token in a snippet is
+    an undocumented API a consumer would copy and depend on."""
+    from build import PUBLIC_CSS_PROPS
+
+    leaks = []
+    for pid, partial in _all_partials():
+        for name in re.findall(r"--dz-[a-z0-9-]+", partial):
+            if name not in PUBLIC_CSS_PROPS:
+                leaks.append(f"{pid}: {name}")
+    assert not leaks, (
+        "private custom properties referenced in snippets (declare in "
+        "PUBLIC_CSS_PROPS or use a public knob):\n  " + "\n  ".join(leaks)
+    )
+
+
+def test_js_assigned_classes_have_rules() -> None:
+    """Classes a controller assigns at runtime (`el.className = …`,
+    `classList.add(…)`) are invisible to the registry-class gate above —
+    the 0.1.26 blind spot where the inline-edit editor rendered unstyled
+    in the gallery because its input classes existed only in Dazzle CSS.
+    Every dz-* class a controller can put in the DOM must have a rule in
+    the built bundle. State classes (`is-*`) are exempt: they style via
+    compound selectors on their host."""
+    css = build_css("dz-")
+    controllers = sorted((PKG / "controllers").glob("*.js"))
+    assign_re = re.compile(r"""(?:className\s*=\s*|classList\.add\()["']([^"']+)["']""")
+    missing = []
+    for f in controllers:
+        for m in assign_re.finditer(f.read_text(encoding="utf-8")):
+            for cls in m.group(1).split():
+                if not cls.startswith("dz-") or cls in SEMANTIC_ONLY:
+                    continue
+                if f".{cls}" not in css:
+                    missing.append(f"{f.name}: .{cls}")
+    assert not missing, (
+        "controller-assigned classes with no CSS rule in the bundle:\n  " + "\n  ".join(missing)
+    )
+
+
+def test_semantic_only_list_is_not_stale() -> None:
+    css = build_css("dz-")
+    stale = sorted(cls for cls in SEMANTIC_ONLY if f".{cls}" in css)
+    assert not stale, f"now styled — remove from SEMANTIC_ONLY: {stale}"
+
+
+def test_committed_dist_is_current() -> None:
+    """dist/ is committed so jsDelivr can serve it straight from the repo
+    at any tag (https://cdn.jsdelivr.net/gh/manwithacat/hatchi-maxchi@TAG/dist/…).
+    A stale committed dist would be served to CDN users — fail loudly."""
+    css = (PKG / "dist" / "hatchi-maxchi.css").read_text(encoding="utf-8")
+    js = (PKG / "dist" / "hatchi-maxchi.js").read_text(encoding="utf-8")
+    assert css == build_css() and js == build_js(), (
+        "dist/ is stale — run `python build.py` and commit (CDN users get the committed files)"
+    )
+    for font in ("geist-var.woff2", "geist-mono-var.woff2", "OFL.txt"):
+        assert (PKG / "dist" / "fonts" / font).exists(), f"dist/fonts/{font} missing"
+
+
+def test_committed_gallery_css_is_current() -> None:
+    committed = (PKG / "site" / "hatchi-maxchi.css").read_text(encoding="utf-8")
+    assert committed == build_css(), (
+        "site/hatchi-maxchi.css is stale — re-run the gallery build "
+        "(in the Dazzle monorepo: python packages/hatchi-maxchi/site/build_site.py)"
+    )
+
+
+def test_committed_gallery_js_carries_current_controllers() -> None:
+    committed = (PKG / "site" / "hatchi-maxchi.js").read_text(encoding="utf-8")
+    assert build_js() in committed, (
+        "site/hatchi-maxchi.js does not embed the current controllers — re-run the gallery build"
+    )
+
+
+def _normalize_gallery_bytes(data: bytes) -> bytes:
+    """Drop brand-meta git stamp for byte-identity compare.
+
+    The gallery brand strip embeds HEAD short SHA + commit time. Those change
+    on every new commit that rebuilds the site, so a committed ``index.html``
+    can never match a post-commit rebuild of the *same* tree tip. Version and
+    structure still drift-gate; only the reporting stamp is normalized.
+    """
+    text = data.decode("utf-8")
+    text = re.sub(
+        r'<div class="hm-brand-meta"[^>]*>[\s\S]*?</div>',
+        '<div class="hm-brand-meta"></div>',
+        text,
+        count=1,
+    )
+    return text.encode("utf-8")
+
+
+def test_gallery_part_pages_do_not_ship_dz_code_figures() -> None:
+    """Unprefixed gallery CSS targets ``.code``; leftover ``dz-code`` figures
+    look malformed (copy chrome / token colour missing). Swap-contract
+    examples used to skip apply_prefix entirely — regress that.
+
+    Exception: ``code.html`` is the Code Hyperpart demo — its *live* surface
+    is intentionally the ``dz-code`` / ``code`` figure under test.
+    """
+    bad = []
+    for path in sorted((PKG / "site" / "hyperparts").glob("*.html")):
+        if path.name.endswith("-live.html") or path.name == "code.html":
+            continue
+        text = path.read_text(encoding="utf-8")
+        # Swap-contract / envelope samples live outside the live preview.
+        if 'id="swap-contract"' in text:
+            sec = text.split('id="swap-contract"', 1)[1]
+            sec = sec.split("<section", 1)[0] if "<section" in sec else sec[:20000]
+            if 'class="dz-code"' in sec or "data-dz-code" in sec:
+                bad.append(f"{path.name}#swap-contract")
+        if 'class="dz-code"' in text and path.name != "code.html":
+            # Any residual dz-code on non-code part pages
+            bad.append(path.name)
+    assert not bad, (
+        "hyperpart pages still embed dz-prefixed code figures (gallery CSS is "
+        f"unprefixed .code): {bad[:12]}"
+    )
+
+
+def test_kanban_declares_rearrange_exchanges() -> None:
+    """Rearrange is PUT entity + GET region — not presentation-only n/a."""
+    kanban = next(c for c in HYPERPARTS if c.id == "kanban")
+    methods = {e.method.upper() for e in kanban.exchanges}
+    assert methods == {"PUT", "GET"}, methods
+    put = next(e for e in kanban.exchanges if e.method.upper() == "PUT")
+    get = next(e for e in kanban.exchanges if e.method.upper() == "GET")
+    assert put.envelope == "none"
+    assert get.envelope == "outer"
+    assert "data-dz-kanban-api" in kanban.partial
+    assert "data-dz-kanban-src" in kanban.partial
+
+
+def test_gallery_html_embeds_current_htmx_pin() -> None:
+    """Committed gallery footers must match ``HTMX_PINNED_VERSION``.
+
+    Weaker ``"4.0.0" in html`` checks pass on ``4.0.0-beta5``. The byte-identity
+    gate then fails with a 90-file unified diff. This test names the pin.
+    """
+    from build_site import _htmx_pinned_version
+
+    pin = _htmx_pinned_version()
+    needle = f"htmx.org/v/{pin}"
+    stale = [
+        h.id
+        for h in HYPERPARTS
+        if needle not in (PKG / "site" / "hyperparts" / f"{h.id}.html").read_text(encoding="utf-8")
+    ]
+    assert not stale, (
+        f"{len(stale)} part page(s) missing htmx pin {pin!r} — "
+        "run `python packages/hatchi-maxchi/site/build_site.py` "
+        f"(or `scripts/update_vendors.py`, which rebuilds the gallery). "
+        f"First: {stale[:5]}"
+    )
+
+
+def test_gallery_regenerates_byte_identically(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """The committed gallery must equal a fresh standalone rebuild — the
+    boundary acceptance test (Phase 3): the split repo regenerates its own
+    docs with zero Dazzle code, and what it regenerates is what's shipped."""
+    import build_site
+
+    build_site.build(tmp_path)
+    fresh_files = {
+        q.relative_to(tmp_path).as_posix(): q for q in tmp_path.rglob("*") if q.is_file()
+    }
+    committed_root = PKG / "site"
+    # Committed-side files that are SOURCES (not build outputs): python
+    # modules, caches. Everything else under site/ must be exactly what a
+    # fresh build emits — the tree-compare version of the old 3-file check.
+    committed_files = {
+        q.relative_to(committed_root).as_posix(): q
+        for q in committed_root.rglob("*")
+        if q.is_file() and "__pycache__" not in q.parts and q.suffix != ".py"
+    }
+    missing = sorted(set(fresh_files) - set(committed_files))
+    stale_extra = sorted(set(committed_files) - set(fresh_files))
+    assert not missing, (
+        f"built artifacts not committed: {missing} — run site/build_site.py and commit"
+    )
+    assert not stale_extra, (
+        f"committed artifacts the build no longer emits: {stale_extra} — delete them"
+    )
+    for rel, fq in fresh_files.items():
+        fresh_b = fq.read_bytes()
+        committed_b = committed_files[rel].read_bytes()
+        if rel.endswith(".html"):
+            fresh_b = _normalize_gallery_bytes(fresh_b)
+            committed_b = _normalize_gallery_bytes(committed_b)
+        assert fresh_b == committed_b, (
+            f"site/{rel} is stale or the build is nondeterministic — "
+            "re-run python site/build_site.py and commit"
+        )
+    assert any(r.startswith("hyperparts/") for r in fresh_files), "no per-part pages built"
+    assert any(r.startswith("agents/") for r in fresh_files), "no agent files built"
+    # Blueprint sub-pages regenerate byte-identically too — stale committed
+    # HTML would make test_blueprints.py exercise outdated markup while green.
+    for bp_html in sorted((tmp_path / "blueprints").glob("*.html")):
+        fresh = _normalize_gallery_bytes(bp_html.read_bytes()).decode("utf-8")
+        committed = _normalize_gallery_bytes(
+            (PKG / "site" / "blueprints" / bp_html.name).read_bytes()
+        ).decode("utf-8")
+        assert fresh == committed, (
+            f"site/blueprints/{bp_html.name} is stale — re-run python site/build_site.py and commit"
+        )
+
+
+def test_prefix_transform_is_total() -> None:
+    css = build_css(prefix="ax-")
+    js = build_js(prefix="ax-")
+    # `dz-` survives ONLY in PRIVATE `--dz-*` custom-property names (the
+    # public knobs in PUBLIC_CSS_PROPS are reprefixed like any API name —
+    # see build.apply_prefix). Everything else must be renamed.
+    css_no_customprops = re.sub(r"--dz-[a-z0-9*-]*", "", css)
+    assert "dz-" not in css_no_customprops, "class/attr/keyframe dz- leaked through --prefix ax-"
+    assert "dz-" not in js
+    assert ".ax-button" in css and ".ax-alert" in css
+    assert "ax-command" in js and "data-ax-native-confirm" in js
+
+
+def test_default_prefix_is_unprefixed() -> None:
+    # HM ships clean/unprefixed by default (developer engagement); a consumer
+    # (Dazzle) applies its own namespace at ingest via build_css("dz-").
+    css = build_css()
+    assert ".button" in css and ".badge" in css
+    assert ".dz-button" not in css and "data-dz-tone" not in css
+
+
+def test_dazzle_namespace_roundtrips() -> None:
+    # The production consumption path: build_css("dz-") is the dz- form Dazzle
+    # ingests (byte-identical to the pre-flip artifact).
+    css = build_css("dz-")
+    assert ".dz-button" in css and "data-dz-tone" in css
+
+
+# ── Hypermedia exchange contracts (the "partial + endpoint contract"
+#    concept) — every request a partial makes must be a DECLARED contract,
+#    and every declared contract must correspond to a real affordance. ──
+
+
+def test_every_request_affordance_has_a_declared_exchange() -> None:
+    """A partial that makes an hx request it doesn't declare is an
+    undocumented contract — an agent consuming the component can't know
+    what endpoint to build. Fail loudly."""
+    gaps = []
+    for c in HYPERPARTS:
+        declared = {(e.method.upper(), e.endpoint) for e in c.exchanges}
+        for method in sorted(_methods_in_markup(c.partial)):
+            # markup uses mock endpoints; exchanges declare the REAL contract
+            # — so we require one exchange per request METHOD, not per URL.
+            if not any(m == method for m, _ in declared):
+                gaps.append(f"{c.id}: {method} affordance in markup with no declared Exchange")
+    assert not gaps, (
+        "components make requests they don't declare as Exchange contracts:\n  " + "\n  ".join(gaps)
+    )
+
+
+def test_no_orphan_exchange_without_an_affordance() -> None:
+    """An Exchange with no matching hx-* control in the markup is a stale
+    contract — the partial doesn't actually make that request."""
+    orphans = []
+    for c in HYPERPARTS:
+        methods_in_markup = _methods_in_markup(c.partial)
+        for e in c.exchanges:
+            if e.method.upper() not in methods_in_markup:
+                orphans.append(f"{c.id}: Exchange {e.method} {e.endpoint} has no hx-* affordance")
+    assert not orphans, "stale Exchange contracts (no affordance in markup):\n  " + "\n  ".join(
+        orphans
+    )
+
+
+def test_exchange_fields_are_populated() -> None:
+    """Each contract must actually document trigger / response / swap — a
+    blank field is an undocumented contract masquerading as a documented one."""
+    thin = [
+        f"{c.id}: {e.method} {e.endpoint}"
+        for c in HYPERPARTS
+        for e in c.exchanges
+        if not (e.trigger.strip() and e.response.strip() and e.swap.strip())
+    ]
+    assert not thin, "Exchange contracts with empty trigger/response/swap:\n  " + "\n  ".join(thin)
+
+
+def test_interactive_htmx_components_declare_contracts() -> None:
+    """A component tagged htmx that makes requests must carry exchanges —
+    guards against the tag drifting from reality."""
+    missing = [
+        c.id
+        for c in HYPERPARTS
+        if "htmx" in c.tags and _REQUEST_ATTR_RE.search(c.partial) and not c.exchanges
+    ]
+    assert not missing, f"htmx components making requests but declaring no Exchange: {missing}"
+
+
+def test_exchange_empty_only_when_no_declared_exchanges() -> None:
+    """``exchange_empty`` documents form-bound server work when there is no
+    hx-* Exchange table. Combining both is contradictory — pick one."""
+    both = [c.id for c in HYPERPARTS if c.exchange_empty.strip() and c.exchanges]
+    assert not both, f"exchange_empty set alongside declared Exchange(s): {both}"
+
+
+def test_combobox_documents_form_bound_server_contract() -> None:
+    """Growing-list must not look like pure presentation — agents reject
+    unknown catalogue values if Server exchange says 'no exchange'."""
+    cb = next(c for c in HYPERPARTS if c.id == "combobox")
+    assert not cb.exchanges, "combobox has no dedicated hx-* affordance"
+    prose = cb.exchange_empty.lower()
+    assert "upsert" in prose
+    assert "allow-create" in prose or "growing" in prose
+    assert "enclosing form" in prose
+
+
+def test_command_preview_posts_named_query() -> None:
+    """Cycle 2130: leftover query must reach /mock/command as name=q.
+
+    Product AppShell already emits name=q. The gallery preview used to
+    omit it, so MOCK_HTMX invented the full canned catalog for zzzz.
+    """
+    cmd = next(c for c in HYPERPARTS if c.id == "command")
+    assert 'name="q"' in cmd.partial
+    assert "full persona catalog" in cmd.exchanges[0].response
+
+
+def test_search_select_preview_posts_named_query() -> None:
+    """Cycle 2138: leftover query must reach /mock/typeahead as name=q.
+
+    Path-only /mock/typeahead invented the canned Aurora list for zzz.
+    form=\"hm-detached-q\" keeps leftover off the enclosing form POST.
+    Cycle 2140: form=\"\" is invalid HTML (Nu empty ID).
+    """
+    ss = next(c for c in HYPERPARTS if c.id == "search-select")
+    assert 'name="q"' in ss.partial
+    assert 'form="hm-detached-q"' in ss.partial
+    assert 'form=""' not in ss.partial
+
+
+def test_search_box_preview_posts_named_query() -> None:
+    """Cycle 2148: leftover query must reach /mock/search as name=q.
+
+    Path-only /mock/search invented the canned Aurora list for zzz.
+    Date-range still uses /mock/search without q= (canned fragment).
+    """
+    sb = next(c for c in HYPERPARTS if c.id == "search-box")
+    assert 'name="q"' in sb.partial
+    assert 'hx-get="/mock/search"' in sb.partial
+    src = (Path(__file__).resolve().parents[1] / "site" / "build_site.py").read_text(
+        encoding="utf-8"
+    )
+    assert "function renderSearchResults" in src
+    assert "SEARCH_BOX_ITEMS" in src
+    assert 'path === "/mock/search"' in src
+
+
+def test_gallery_pages_host_detached_q_form() -> None:
+    """Cycle 2140: Nu requires form= to name a real form element."""
+    site = Path(__file__).resolve().parents[1] / "site"
+    index = (site / "index.html").read_text(encoding="utf-8")
+    part = (site / "hyperparts" / "search-select.html").read_text(encoding="utf-8")
+    assert 'id="hm-detached-q"' in index
+    assert 'id="hm-detached-q"' in part
+    assert 'form=""' not in index
+    assert 'form=""' not in part
+
+
+_DATA_ATTR_RE = re.compile(r"\bdata-([a-z][a-z0-9-]*)=")
+
+
+def test_data_attributes_follow_the_namespace_grammar() -> None:
+    """Component data-attributes must be namespaced — `data-dz-*` (framework)
+    or `data-hm-*` (gallery). This stops an agent inventing inconsistent
+    alternatives like `data-color`/`data-type`/`data-style` (agent-review
+    naming-contract). Visual variants use `data-dz-variant`, semantic tone
+    `data-dz-tone`, size `data-dz-size`."""
+    offenders: dict[str, set[str]] = {}
+    for pid, partial in _all_partials():
+        for m in _DATA_ATTR_RE.finditer(partial):
+            name = m.group(1)
+            if not name.startswith(("dz-", "hm-")):
+                offenders.setdefault(pid, set()).add("data-" + name)
+    assert not offenders, f"non-grammar data-attributes (use data-dz-*/data-hm-*): {offenders}"
+
+
+def test_composes_references_real_hyperparts() -> None:
+    """A composite's `composes` must name real Hyperparts — a dangling child
+    id means the 'Composed of' links and dependency aggregation are wrong."""
+    ids = {c.id for c in HYPERPARTS}
+    dangling = {c.id: [x for x in c.composes if x not in ids] for c in HYPERPARTS if c.composes}
+    dangling = {k: v for k, v in dangling.items() if v}
+    assert not dangling, f"composes references unknown Hyperparts: {dangling}"

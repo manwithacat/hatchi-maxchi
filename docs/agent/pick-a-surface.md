@@ -1,0 +1,156 @@
+# Playbook: pick a surface
+
+**Goal:** Map a user job to the correct L1 Hyperpart (or host-local primitive).
+**Open when:** “I need a dropdown / picker / chips / typeahead / filter / top nav / actions menu.”
+**Do not open:** gallery HTML first; do not invent a new part before this matrix.
+**Work surfaces (kanban / timeline / queue / …):** use
+`pick-a-work-surface.md` + `work_surface_utility.toml` — this file is for
+**controls**, not region/board choice.
+
+## Steps
+
+1. Name the **job** in plain language (one sentence).
+2. Name **lifetime**: durable form field vs ephemeral editor vs page region.
+3. Name **exchange**: form POST, hx-get fragment, single-field PUT, none (pure chrome).
+4. Match a row below. Prefer the **Use** column.
+5. Open `site/agents/<id>.md` and implement that spine only.
+
+## Pick matrix (L0 → L1)
+
+### Selection / entry
+
+| Job | Recipe slug | Lifetime | Exchange | **Use** | **Do not use** |
+|-----|-------------|----------|----------|---------|----------------|
+| Single-select, form, closed set | `single-select-form` | Field | Form POST | `combobox` | search-select, tags |
+| Single-select, form, add if missing | `single-select-form` | Field | Form POST + **catalogue upsert** | `combobox` + `data-dz-allow-create` | new “create-dropdown” part |
+| Multi free-form labels | `multi-label-form` | Field | Form POST (comma-joined) | `tags` | combobox |
+| Remote FK / typeahead | `remote-fk-typeahead` | Field | Search + select exchanges | `search-select` | combobox per entity |
+| Dense in-cell enum, morph, PUT | `single-select-cell` | Ephemeral cell | Single-field PUT | grid-edit `kind=select` (on `grid`) | combobox (refused today) |
+| Toolbar filter (closed options) | _(host-local)_ | Control on host | Host list exchange (query param) | native/filter select on host | invent fourth picker |
+| Confirm irreversible action | `confirm-affordance` | Affordance | Existing `hx-*` of the action | `confirm` (hx-confirm) | custom modal stack |
+| Money as major display | `money-minor-units` | Field | Form posts **minor integer** | `money` | float string as source of truth |
+| Boolean settings / on-off preference | `boolean-settings` | Field | Form POST checkbox `true`/absent | **`switch`** (`widget=switch`) | plain checkbox group for multi-flags; bulk-select row checkbox; toolbar filter chip |
+| Toolbar mode press (aria-pressed, not settings track) | `mode-press` | Field / chrome | Client press / optional hidden SSR | **`toggle`** (`widget=toggle` / `Toggle` fragment) | switch (settings); toggle-group (exclusive segments) |
+| Small closed enum (2–5), high visual priority | `closed-enum-segments` | Field | Form POST radio value | **`toggle-group`** (`widget=toggle_group`) | combobox (large enums); tags (multi free-form); single `toggle` button |
+
+Recipe slugs are seeded on Hyperparts via `_RECIPE_SEED` in `site/registry.py`
+and appear on agent packs + `CONSUMER_MAP.md` › By recipe.
+
+### Structure / chrome
+
+| Job | **Use** | Notes |
+|-----|---------|--------|
+| Label + help + error | `field` | aria-invalid / describedby |
+| Page motif of existing parts | **Blueprint** | Not a new Hyperpart |
+| Vertical rhythm | `stack` | Layout primitive |
+| Lock media frame ratio (thumbs, embeds) | `aspect-ratio` | Media field compose / `AspectRatio` fragment |
+| Where am I in the app (trail above main) | `breadcrumb` | Shell trail from route + title / `Breadcrumb` fragment |
+| Chat speech shell (inbound/outbound) | `bubble` | `display: conversation` / `Bubble` fragment |
+| Chat message row (media + meta + bubble) | `message` | `display: conversation` / `Message` fragment (nests Bubble) |
+| Chat transcript viewport (scrollable stack) | `message-scroller` | `display: conversation` / `MessageScroller` fragment (wraps Message) |
+| Multi-image stage strip (prev/next) | `carousel` | `display: carousel` / `Carousel` fragment |
+| Rich person/entity preview on hover | `hover-card` | Person chip compose guest / `HoverCard` fragment (no region verb) |
+| Free content under a trigger (filters/preview/columns) | `popover` | `Popover` fragment / list Columns free panel (not menu) |
+| Map / plan pin chrome (label + tone) | `marker` | `display: map` / `Marker` fragment (host placement) |
+| List + sibling detail on one workspace | `master-detail` | `stage: dual_pane_flow` + LIST/DETAIL pair shell |
+| App chrome File/Edit/View command strip | `menubar` | `menubar: true` on app block → topbar `Menubar` |
+| Wrapping actions | `cluster` / `toolbar` | Compose real children in HTML |
+
+### Menus / panels / chrome strips
+
+Horizontal panels and “dropdowns” are **not one Hyperpart**. Choose by **job**
+(action vs navigate vs app chrome), not by “opens a panel with a chevron.”
+shadcn names are a prior; lifetime + exchange decide. Same shape ≠ same L1
+(`stems/three-layers.md`).
+
+| Job (one sentence) | Lifetime | Exchange | **Use** | **Do not use** |
+|--------------------|----------|----------|---------|----------------|
+| Local **actions** from one control (“Edit / Duplicate / Delete”) | Ephemeral affordance on a host | Item owns `hx-*` / dialog; menu itself often none | **`menu`** | menubar, navigation-menu, invent “dropdown-menu” |
+| Free-floating **content** (filters, preview, form fragment) | Ephemeral | Optional lazy hx-get into panel | **`popover`** | menu (action list), dialog (modal) |
+| **App chrome** File / Edit / View command strip | Durable session chrome | Usually none; items may navigate | **`menubar`** | navigation-menu (site IA), single `menu` for the whole strip |
+| **Product / site go-to** top nav (links + optional mega panels) | Durable IA | Navigation (`href` / boost); `aria-current=page` | **`navigation-menu`** | menubar (app commands), app-shell **sidebar** (left rail) |
+| Left-rail **app** navigation | Durable shell | Host routes / boost | **`app-shell`** (sidebar) | navigation-menu (top product nav) |
+| Confirm irreversible action from a menu item | Affordance on the action | Existing `hx-*` of the item | **`confirm`** on the item | custom modal stack |
+
+**Compressed pick:**
+
+```
+Need a list of actions from one button?     → menu
+Need free content under a trigger?          → popover
+Need File/Edit/View app chrome?             → menubar
+Need top product/site nav (go somewhere)?   → navigation-menu
+Need left rail app IA?                      → app-shell
+```
+
+**Composition (not merge):** `toolbar` embeds `menu`; menubar may compose denser
+item lists with menu patterns; navigation-menu sits with app-shell as peer chrome
+(top vs side). Do **not** collapse into one part with `data-mode=bar|nav|dropdown`.
+
+**Dismiss model** (stem `overlay-light-dismiss`): two axes — **spatial**
+(Esc / outside) vs **temporal** (opt-in `data-dz-dismiss-ms`). Transient overlays
+(`menu`, `popover`, menubar/nav panels) default to **spatial only**. Timeout is
+per-instance for glance previews, not for forms. Configure:
+`data-dz-dismiss="esc outside|none"` + optional `data-dz-dismiss-ms`. In-flow
+structure (`accordion`, `tree`): no light-dismiss. Touch: outside, not Esc.
+Disclosure chevron ≠ dismiss path.
+
+Agent packs: `site/agents/menu.md`, `menubar.md`, `navigation-menu.md`.
+
+### Modals / confirm / gates
+
+**Chrome vs protocol** (stem `chrome-vs-protocol.md`): two surfaces can share
+modal **chrome** (focus trap, Esc, buttons) and still differ in **protocol**
+(how they open and attach to htmx). Related split: **addressing** (trigger →
+dialog id) vs **request gating** (hold an existing `hx-*` until accept).
+
+Taxonomy when choosing (and when writing Guidance):
+
+| Dimension | Ask |
+|-----------|-----|
+| **Job** | Custom modal workspace, or yes/no before a request, or checklist consent? |
+| **Lifecycle** | Authored N dialogs in the page, or lazy singleton, or in-flow gate? |
+| **Who authors markup** | Full dialog HTML, or message string on the action, or checklist + parked href? |
+| **htmx attach** | Open by id; gate via `htmx:confirm`; or no modal (DOM arm/disarm)? |
+
+| Job | Lifecycle | Markup author | htmx attach | **Use** | **Do not use** |
+|-----|-----------|---------------|-------------|---------|----------------|
+| Designed modal body / multi-control flow | N instances in page (or swapped in) | Author full `<dialog>` | Addressing: `data-dz-dialog-open` → `showModal`; actions may carry `hx-*` | **`dialog`** | confirm for custom body; div role=dialog |
+| Edge-anchored modal panel | Same as dialog | Author drawer dialog | Same opener as dialog | **`drawer`** | reinvent with absolute panels |
+| Yes/no before **existing** destructive (or serious) request | Lazy singleton | Message = `hx-confirm="…"` on the action | **Gating:** `htmx:confirm` → issue/drop; **no** confirm Exchange | **`confirm`** | full dialog per delete; `POST /confirm` |
+| Multi-obligation consent before primary arms | In-flow form region | Checklist + `data-dz-confirm-href` | No modal; gate promotes href | **`confirm-panel`** | dialog that only counts checkboxes in JS state |
+| Non-modal free content under trigger | Ephemeral details | Author panel | Light-dismiss details | **`popover`** | dialog (modal) |
+
+**Compressed pick:**
+
+```
+Custom modal body / multi-control?     → dialog (addressing)
+Yes/no before existing hx-*?         → confirm (request gating, hx-confirm)
+Checklist before arming primary?     → confirm-panel
+Non-modal content under a trigger?   → popover
+```
+
+**Orthogonality cheatsheet** (for agent notes):
+
+| | Chrome (looks modal) | Protocol (attach) |
+|--|----------------------|-------------------|
+| `dialog` | full authored shell | addressing by id |
+| `confirm` | fixed alert shell | gate on `hx-confirm` |
+| `command` | palette shell | addressing + search exchange |
+| `menu` / `popover` | not modal trap | details + light-dismiss |
+
+Agent packs: `site/agents/dialog.md`, `confirm.md`, `confirm-panel.md`.
+
+If no row fits: open `invent-safely.md`—do **not** stretch an L1 with mode flags that change lifetime or commit path.
+
+## Stop conditions
+
+- You chose by **screenshot similarity** alone → restart from lifetime + exchange.
+- You planned `data-density=cell` on combobox → read `docs/decisions/0002-three-layers.md`.
+- Grid in-cell combobox → `CONSUMER_MAP` refuse edge + `docs/spikes/combobox-in-grid-cell.md`.
+- You picked menubar vs navigation-menu by “horizontal strip” alone → re-ask: **app commands** or **go somewhere**?
+- You picked dialog vs confirm by “both use `<dialog>`” alone → re-ask: **addressing** (custom body) or **request gating** (`hx-confirm`)?
+
+## Next
+
+- Implement: `site/agents/<id>.md`
+- Host work: `compose-or-refuse.md`

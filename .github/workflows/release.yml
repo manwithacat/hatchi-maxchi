@@ -1,0 +1,81 @@
+# Cut a release two ways — both DELIBERATE, never automatic:
+#   1. Push a tag `v*` (must equal package.json's version).
+#   2. Run this workflow from the Actions UI with the version input;
+#      it validates against package.json and creates the tag + release
+#      in one run.
+# Either way the built bundle is attached and the release notes carry
+# the ready-to-paste jsDelivr CDN snippet with SRI hashes.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (must equal package.json, e.g. 0.1.2)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Resolve and validate version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! printf '%s' "$INPUT_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::version must look like 1.2.3, got: $INPUT_VERSION"; exit 1
+            fi
+            TAG="v$INPUT_VERSION"
+          else
+            TAG="$GITHUB_REF_NAME"
+          fi
+          PKG_VERSION=$(python -c "import json;print(json.load(open('package.json'))['version'])")
+          if [ "$PKG_VERSION" != "${TAG#v}" ]; then
+            echo "::error::$TAG != package.json version $PKG_VERSION (bump package.json in the monorepo first — the sync will carry it here)"; exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Build dist
+        run: |
+          python build.py
+          cd dist && zip -r ../hatchi-maxchi-dist.zip . && cd ..
+      - name: Create release (with CDN + SRI snippet in the notes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CSS_SRI=$(openssl dgst -sha384 -binary dist/hatchi-maxchi.css | openssl base64 -A)
+          JS_SRI=$(openssl dgst -sha384 -binary dist/hatchi-maxchi.js | openssl base64 -A)
+          cat > /tmp/notes.md <<EOF
+          ## Hosted (jsDelivr CDN)
+
+          \`\`\`html
+          <link rel="stylesheet"
+                href="https://cdn.jsdelivr.net/gh/${GITHUB_REPOSITORY}@${TAG}/dist/hatchi-maxchi.css"
+                integrity="sha384-${CSS_SRI}"
+                crossorigin="anonymous">
+          <script src="https://cdn.jsdelivr.net/gh/${GITHUB_REPOSITORY}@${TAG}/dist/hatchi-maxchi.js"
+                  integrity="sha384-${JS_SRI}"
+                  crossorigin="anonymous" defer></script>
+          \`\`\`
+
+          Fonts resolve relatively from the CDN. Or self-host the attached assets.
+          EOF
+          # In dispatch mode the tag doesn't exist yet — --target creates it
+          # at the checked-out commit; in tag-push mode the tag already exists
+          # and --target is ignored.
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "HaTchi-MaXchi $TAG" \
+            --notes-file /tmp/notes.md \
+            hatchi-maxchi-dist.zip \
+            dist/hatchi-maxchi.css \
+            dist/hatchi-maxchi.js

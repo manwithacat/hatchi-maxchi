@@ -1,0 +1,229 @@
+/* HYPERPART: drawer */
+/*
+ * dz-drawer — an edge-anchored panel built on the native <dialog>, so it is
+ * a drawer with a modal's guarantees: focus is trapped, the background goes
+ * inert, Esc and a backdrop tap dismiss it — none of which a plain <aside>
+ * toggle gets for free. It shares the dialog's opener (dz-dialog.js: a
+ * [data-dz-dialog-open="id"] trigger calls showModal()) and native close
+ * (<form method="dialog"> + Esc + closedby="any") — no drawer-specific JS.
+ *
+ * `data-dz-side="right"` (default) | `"left"` anchors the edge; the panel
+ * slides in from that edge (native <dialog> enter transition via
+ * @starting-style), honouring prefers-reduced-motion.
+ */
+
+dialog.dz-drawer {
+  width: min(24rem, calc(100vw - 3rem));
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--colour-surface);
+  color: var(--colour-text);
+  box-shadow: var(--shadow-lg);
+  /* Shell may hold initial focus after open (dz-dialog.js) — no ring on the panel. */
+  outline: none;
+  /* right edge (default): pin to the inline-end */
+  margin-block: 0;
+  margin-inline: auto 0;
+  border-inline-start: 1px solid var(--colour-border);
+  /* enter transition: slide from the anchored edge. `allow-discrete` lets
+     the dialog animate on open despite the display:none→block flip.
+     Width is animated so Expand/Restore is visibly functional (not a silent
+     data-attr flip). */
+  translate: 0 0;
+  transition:
+    translate var(--duration-base) var(--ease-out),
+    width var(--duration-base) var(--ease-out),
+    overlay var(--duration-base) var(--ease-out) allow-discrete,
+    display var(--duration-base) var(--ease-out) allow-discrete;
+}
+
+dialog.dz-drawer:focus,
+dialog.dz-drawer:focus-visible {
+  outline: none;
+}
+
+/* Width presets (data-dz-width) — promoted from Dazzle's peek
+ * slide_over feature (Tier F2): the author's declared panel width.
+ * Unset/other values keep the drawer's default width above; presets
+ * only widen on viewports that can afford it. */
+@media (min-width: 40rem) {
+  dialog.dz-drawer[data-dz-width="sm"] { width: min(24rem, calc(100vw - 3rem)); }
+  dialog.dz-drawer[data-dz-width="md"] { width: min(32rem, calc(100vw - 3rem)); }
+  dialog.dz-drawer[data-dz-width="lg"] { width: min(42rem, calc(100vw - 3rem)); }
+  dialog.dz-drawer[data-dz-width="xl"] { width: min(56rem, calc(100vw - 3rem)); }
+  dialog.dz-drawer[data-dz-width="full"] { width: calc(100vw - 3rem); }
+}
+
+dialog.dz-drawer[data-dz-side="left"] {
+  margin-inline: 0 auto;
+  border-inline: none;
+  border-inline-end: 1px solid var(--colour-border);
+}
+
+/* start state (opening) + exit state (closing) sit off the anchored edge.
+   NOTE: the slide uses a physical `translate` while anchoring uses logical
+   margins — correct for LTR; under RTL a right-anchored panel would slide
+   from the wrong edge. The package has no RTL/dir support today, so this is
+   a tracked follow-up, not a live defect. */
+@starting-style {
+  dialog.dz-drawer[open] { translate: 100% 0; }
+  dialog.dz-drawer[data-dz-side="left"][open] { translate: -100% 0; }
+}
+dialog.dz-drawer:not([open]) { translate: 100% 0; }
+dialog.dz-drawer[data-dz-side="left"]:not([open]) { translate: -100% 0; }
+
+dialog.dz-drawer::backdrop {
+  background: oklch(13% 0.028 261.69 / 0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* The open drawer is a flex column (pinned header + footer, scrolling body).
+   Scoped to [open] so a CLOSED dialog falls through to the UA
+   `dialog:not([open]){display:none}` — an unconditional `display:flex` would
+   keep the closed dialog rendered off-screen, leaking its controls into the
+   tab order + a11y tree. The base `transition: display allow-discrete` still
+   animates the exit. */
+dialog.dz-drawer[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* header/body/footer are the dialog's flex column whether they sit directly
+   in the <dialog> (a JS-driven drawer, e.g. a detail panel) or are wrapped in
+   a <form method="dialog"> (the native-close form). display:contents makes the
+   optional form transparent to layout so both shapes stack the same. */
+dialog.dz-drawer > form {
+  display: contents;
+}
+
+.dz-drawer__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  flex: none;
+  padding: var(--space-lg);
+  border-block-end: 1px solid var(--colour-border);
+}
+
+.dz-drawer__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--colour-text);
+}
+
+.dz-drawer__close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: calc(var(--space-xs) * -1) calc(var(--space-xs) * -1) 0 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--colour-text-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-drawer__close:hover {
+  background: var(--colour-surface-muted);
+  color: var(--colour-text);
+}
+
+.dz-drawer__close:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.dz-drawer__close svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Body is a composition host: primary text colour so nested Hyperparts
+   (field labels, card values, switch labels, badges) match their standalone
+   demos. Do not paint the whole body muted — guests inherit. Leading prose
+   (direct children <p>, gallery hm-demo-muted) is the secondary voice. */
+.dz-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  line-height: var(--leading-normal);
+}
+
+.dz-drawer__body > p { margin: 0; color: var(--colour-text-muted); }
+
+.dz-drawer__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex: none;
+  padding: var(--space-lg);
+  border-block-start: 1px solid var(--colour-border);
+}
+
+/* Flat-named internal chrome (moved from Dazzle dashboard.css, HMC-007b —
+   the drawer's chrome travels with the drawer component). These are the class
+   names the detail-drawer emitter produces (distinct from the __header/__body
+   BEM parts above); kept verbatim, already tokenised. */
+.dz-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-md);
+  padding-block: var(--space-sm);
+  border-block-end: 1px solid var(--colour-border);
+  flex-shrink: 0;
+}
+
+.dz-drawer-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 2rem;
+  padding-inline: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--colour-text-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.dz-drawer-button:hover {
+  background: var(--colour-bg);
+}
+
+.dz-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.dz-drawer { transition: none; }
+  dialog.dz-drawer[open],
+  dialog.dz-drawer:not([open]) { translate: 0 0; }
+  .dz-drawer__close { transition: none; }
+}
+
+/* Detail-drawer width instance (migrated from Dazzle dashboard.css, HMC-020):
+   the entity detail slide-over is wider than the HM drawer default. */
+#dz-detail-drawer.dz-drawer {
+  width: min(42rem, calc(100vw - 3rem));
+}

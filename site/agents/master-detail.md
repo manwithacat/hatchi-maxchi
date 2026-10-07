@@ -1,0 +1,179 @@
+# Master–detail (`master-detail`)
+
+Exchange composition — a list item hx-gets its detail card into the detail pane. The canonical htmx composite; two can coexist on a page.
+
+> **Layer:** L2 host · **Recipe:** `list-region-host` — server-driven list / data table host
+> Curriculum: `AGENTS.md` · pick matrix: `docs/agent/pick-a-surface.md` · blast radius: `CONSUMER_MAP.md`
+
+> **Dialect:** Partial below is **unprefixed** (gallery / standalone HM). DOM contract Python often uses the **source token** `data-dz-*` / `dz-*` (Dazzle dual-lock). Match the CSS/JS bundle you load.
+
+> **Demo vs contract:** Live gallery behaviour may use `/mock/*` or flash toasts. Those are **offline demos only** — implement **Server exchange** + **DOM contract**, not the mock. See AGENTS.md › Gallery demos.
+
+## Copy this
+
+```html
+<div class="master-detail" data-master-detail>
+  <ul class="master-detail__list" aria-label="Invoices" data-master-detail-list-body>
+    <li><a class="master-detail__item" href="#" aria-current="true" hx-get="/mock/master-detail/inv-001" hx-target="next .master-detail__detail">INV-001 · Acme</a></li>
+    <li><a class="master-detail__item" href="#" hx-get="/mock/master-detail/inv-002" hx-target="next .master-detail__detail">INV-002 · Globex</a></li>
+    <li><a class="master-detail__item" href="#" hx-get="/mock/master-detail/inv-003" hx-target="next .master-detail__detail">INV-003 · Initech</a></li>
+  </ul>
+  <div class="master-detail__detail" data-master-detail-detail-body>
+    <div class="card card-body">
+      <div class="card-label">INV-001 · Acme</div>
+      <div class="card-value">£1,250.00</div>
+      <div class="card-delta">Paid · 2 days ago</div>
+    </div>
+  </div>
+</div>
+```
+
+## Server exchange
+
+When the client affordance finishes, htmx issues **this** request. Return the **response fragment** in the table (usually HTML, not JSON). Dazzle often implements these from the app model; a standalone HTMX4 app implements them explicitly.
+
+> **Do not reimplement the gallery.** Flash toasts (e.g. confirm’s > “Deleted (demo).”), `/mock/*` paths, and other static-site > scaffolding are **demo-only** (`MOCK_HTMX` in `site/build_site.py`). > They are not Hyperpart surface and not a product API. If you are > stuck making a toast or mock URL work, stop — implement the > exchange row below instead. See AGENTS.md › *Gallery demos are not > the product API*.
+
+| Request | Trigger | Response fragment | Swap | Envelope | States |
+|---|---|---|---|---|---|
+| `GET /app/master-detail/{id}` | a list item, on click | a detail card fragment — `<div class="dz-card dz-card-body">…` | innerHTML of the sibling `.dz-master-detail__detail` pane | `body_only` | loading populated error |
+
+## Swap contract
+
+Agent-visible HTMX topology (ADR-0054 / decision 0012). **Exchange envelope** = what the response may re-emit relative to the persistent slot (`body_only` | `outer` | `none` | `host_owned` | `document`). Dual-lock validates part markup only — not this envelope. Stem: `stems/morph-safe-hypermedia.md`.
+
+Gallery mocks may approximate morph with `innerHTML` — production follows the swap column in **Server exchange**.
+
+### Exchanges (swap · envelope)
+
+- `GET /app/master-detail/{id}` → innerHTML of the sibling `.dz-master-detail__detail` pane · **envelope=`body_only`**
+
+### Replace / other HTML swap
+
+- `GET /app/master-detail/{id}` → body_only
+
+### Envelope rules
+
+- **`body_only`** — innerHTML / innerMorph into a slot; response is interior only (no re-wrap of slot id / nested `data-dz-region`).
+- **`outer`** — outerHTML / outerMorph; response may carry identity.
+- **`none`** — no HTML swap (JSON/204/bytes; client or OOB companion).
+- **`host_owned`** — swap target/mode chosen by the host button's `hx-target` / `hx-swap` (part does not fix the envelope).
+- **`document`** — full navigation / document load (not a fragment).
+- Slot owns stable `id` / domain keys; state in DOM, not Alpine.
+
+### Envelope response examples
+
+What the **server returns** for each exchange. Match the **exchange envelope**; dual-lock still applies to interior markup.
+
+#### `GET /app/master-detail/{id}` · envelope=`body_only`
+
+Correct response for body_only into .dz-master-detail__detail (innerHTML / innerMorph). Wrong: re-wrapping the slot.
+
+**Do — correct response body**
+
+```html
+<!-- envelope=body_only → detail pane interior -->
+<div class="dz-card dz-card-body">
+  <h2 class="dz-heading" data-dz-level="3">Acme Ltd</h2>
+  <p>Company #12345678 · Active</p>
+</div>
+```
+
+**Don’t — violates `body_only`**
+
+```html
+<!-- WRONG: whole master–detail shell -->
+<div class="dz-master-detail" data-dz-master-detail>
+  <div class="dz-master-detail__list">…</div>
+  <div class="dz-master-detail__detail">…</div>
+</div>
+```
+
+## How to use it
+
+### Seams
+
+- detail pane loads a card fragment via hx-get from the selected item
+- aria-current marks the chosen list item, scoped to THIS root
+
+### Do / Don't
+
+| Do | Don't |
+|---|---|
+| hx-get the detail card into the detail pane on item activate | stash all detail payloads in data-* attributes on every list row |
+| replace (`innerHTML`) the detail pane — it is disposable content that should fully reset on each selection (decision 0005) | morph the detail pane by default when focus/edit state must not leak across selections (prefer explicit replace) |
+
+### Pitfalls
+
+- two master-detail roots must not share aria-current — controller is per-root
+- detail content is a server fragment, not a client template
+
+### Keyboard / AT
+
+- aria-current=true on the active list item
+- list items remain keyboard-activatable links/buttons
+
+### Related parts
+
+- `card` — agents/card.md
+- `list-region` — agents/list-region.md
+
+## DOM contract
+
+What emitted markup must satisfy (CI: `tests/test_contracts.py`). Do not invent attrs outside the tables. Python modules under `contracts/` are **package-internal dual-locks** (`from contracts._kit import …`) — not FastAPI business handlers. App servers implement **Server exchange** endpoints; this section constrains the HTML those endpoints return.
+
+### `contracts/master_detail.py`
+
+- **Required root:** `[data-dz-master-detail]` (part `master-detail`)
+
+| Node | Attr | Constraint |
+|---|---|---|
+| `[data-dz-master-detail]` | `—` | — |
+| `[data-dz-master-detail-list-body]` | `—` | — |
+| `[data-dz-master-detail-detail-body]` | `—` | — |
+
+#### Module source
+
+Monorepo dual-lock only — import `contracts._kit` from the HM package. Do not paste into app route modules.
+
+```python
+"""HYPERPART: master-detail — selection marker + detail pane root.
+
+Dazzle emission site (workspace dual_pane_flow LIST+DETAIL pair):
+``dazzle.page.runtime.dual_pane_master_detail.render_master_detail_shell``.
+List rows carry ``.dz-master-detail__item`` and hx-get a detail fragment into
+``.dz-master-detail__detail``; ``dz-master-detail.js`` owns aria-current.
+
+Leftover honesty (cycle 2183 class-close): list-pane ``hx-get``
+must echo leftover-honest ``include_closed`` / ``as_of``. Bare
+``hx-get="{list_endpoint}"`` dropped them and invented open-only /
+current on pane load. Leftover junk must not invent. Valid
+``true`` / YYYY-MM-DD still ride. Do not walk another ``hx-get``
+sibling (oral #67).
+"""
+
+from contracts._kit import DomContract, Node
+
+DOM_CONTRACT = DomContract(
+    part="master-detail",
+    root="[data-dz-master-detail]",
+    nodes=(
+        Node("[data-dz-master-detail]", attrs={}),
+        # Pane markers (kit selectors are [attr] only — no class engine).
+        Node("[data-dz-master-detail-list-body]", attrs={}),
+        Node("[data-dz-master-detail-detail-body]", attrs={}),
+    ),
+)
+
+__all__ = ["DOM_CONTRACT"]
+```
+
+## Notes
+
+The detail pane loads a card fragment via hx-get; dz-master-detail.js sets aria-current on the chosen item, scoped to THIS root so two coexist.
+
+## Source files
+
+- `site/registry.py` (partial + exchanges + guidance)
+- `contracts/master_detail.py`
+- `controllers/dz-master-detail.js`

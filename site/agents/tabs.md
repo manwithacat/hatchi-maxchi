@@ -1,0 +1,170 @@
+# Tabs (`tabs`)
+
+A lazy tab strip — an honest link-strip (buttons + aria-current, no unkept role=tablist). Each panel hx-gets its content the first time it is shown.
+
+> **Layer:** L1 surface · **Recipe:** _(unset — see docs/agent/pick-a-surface.md)_
+> Curriculum: `AGENTS.md` · pick matrix: `docs/agent/pick-a-surface.md` · blast radius: `CONSUMER_MAP.md`
+
+> **Dialect:** Partial below is **unprefixed** (gallery / standalone HM). DOM contract Python often uses the **source token** `data-dz-*` / `dz-*` (Dazzle dual-lock). Match the CSS/JS bundle you load.
+
+> **Demo vs contract:** Live gallery behaviour may use `/mock/*` or flash toasts. Those are **offline demos only** — implement **Server exchange** + **DOM contract**, not the mock. See AGENTS.md › Gallery demos.
+
+## Copy this
+
+```html
+<!-- icons: include the icon sheet once per page (see the Setup section, #setup) -->
+<div class="tabs" data-tabs>
+  <div class="tabs__list"><button type="button" class="tabs__tab" aria-current="true" data-tab-target="hm-tab-overview">Overview</button><button type="button" class="tabs__tab" data-tab-target="hm-tab-activity">Activity</button><button type="button" class="tabs__tab" data-tab-target="hm-tab-settings">Settings</button></div>
+  <div id="hm-tab-overview" class="tabs__panel">
+    <p class="hm-demo-muted">Active on the Pro plan, renewing 1 August.</p>
+  </div>
+  <div id="hm-tab-activity" class="tabs__panel" hidden hx-get="/mock/tabs/activity" hx-trigger="intersect once" hx-swap="innerHTML">
+    <div class="tabs__loading"><svg class="icon" aria-hidden="true"><use href="#i-loader-circle"/></svg></div>
+  </div>
+  <div id="hm-tab-settings" class="tabs__panel" hidden hx-get="/mock/tabs/settings" hx-trigger="intersect once" hx-swap="innerHTML">
+    <div class="tabs__loading"><svg class="icon" aria-hidden="true"><use href="#i-loader-circle"/></svg></div>
+  </div>
+</div>
+```
+
+## Server exchange
+
+When the client affordance finishes, htmx issues **this** request. Return the **response fragment** in the table (usually HTML, not JSON). Dazzle often implements these from the app model; a standalone HTMX4 app implements them explicitly.
+
+> **Do not reimplement the gallery.** Flash toasts (e.g. confirm’s > “Deleted (demo).”), `/mock/*` paths, and other static-site > scaffolding are **demo-only** (`MOCK_HTMX` in `site/build_site.py`). > They are not Hyperpart surface and not a product API. If you are > stuck making a toast or mock URL work, stop — implement the > exchange row below instead. See AGENTS.md › *Gallery demos are not > the product API*.
+
+| Request | Trigger | Response fragment | Swap | Envelope | States |
+|---|---|---|---|---|---|
+| `GET /app/{region}/{tab}` | a panel, the first time it is revealed (`intersect once`); an eager panel on `load` | the panel's content fragment (rows, a form, a chart — whatever the tab shows) | innerHTML of the panel itself (no hx-target) | `host_owned` | loading populated error |
+
+## Swap contract
+
+Agent-visible HTMX topology (ADR-0054 / decision 0012). **Exchange envelope** = what the response may re-emit relative to the persistent slot (`body_only` | `outer` | `none` | `host_owned` | `document`). Dual-lock validates part markup only — not this envelope. Stem: `stems/morph-safe-hypermedia.md`.
+
+Gallery mocks may approximate morph with `innerHTML` — production follows the swap column in **Server exchange**.
+
+### Exchanges (swap · envelope)
+
+- `GET /app/{region}/{tab}` → innerHTML of the panel itself (no hx-target) · **envelope=`host_owned`**
+
+### Replace / other HTML swap
+
+- `GET /app/{region}/{tab}` → host_owned
+
+### Envelope rules
+
+- **`body_only`** — innerHTML / innerMorph into a slot; response is interior only (no re-wrap of slot id / nested `data-dz-region`).
+- **`outer`** — outerHTML / outerMorph; response may carry identity.
+- **`none`** — no HTML swap (JSON/204/bytes; client or OOB companion).
+- **`host_owned`** — swap target/mode chosen by the host button's `hx-target` / `hx-swap` (part does not fix the envelope).
+- **`document`** — full navigation / document load (not a fragment).
+- Slot owns stable `id` / domain keys; state in DOM, not Alpine.
+
+### Envelope response examples
+
+What the **server returns** for each exchange. Match the **exchange envelope**; dual-lock still applies to interior markup.
+
+#### `GET /app/{region}/{tab}` · envelope=`host_owned`
+
+Correct responses for host_owned — follow the initiating control’s hx-target / hx-swap.
+
+**Do — correct response body**
+
+```html
+<!-- envelope=host_owned → match the *button's* hx-target / hx-swap -->
+<!-- Example A: button hx-swap=delete → empty body (row removed) -->
+
+<!-- Example B: button hx-target=#region-body hx-swap=innerHTML → body_only fragment -->
+<div class="dz-list-row">remaining rows…</div>
+
+<!-- Example C: button hx-swap=outerHTML on a card → full card root -->
+<div class="dz-card" id="invoice-42">…updated card…</div>
+```
+
+**Don’t — violates `host_owned`**
+
+```html
+<!-- WRONG: assuming a fixed envelope without reading the host affordance -->
+<!-- e.g. always returning outer chrome when the button asked for delete/none -->
+<div data-dz-region id="region-x">…</div>
+```
+
+## How to use it
+
+### Seams
+
+- tab (`__tab` button) + tab list (`__list`) + panel (`__panel`)
+- aria-current marks the selected tab; panels toggle scoped to .dz-tabs
+- hidden panels may carry intersect once lazy-load; first panel is eager
+
+### Do / Don't
+
+| Do | Don't |
+|---|---|
+| mark the active tab with aria-current and show its panel | fake tabs with links that reload the whole page for every panel |
+| square active underline (border-radius: 0 on strip tabs) | inherit base button radius so the brand bar curves at the ends |
+
+### Pitfalls
+
+- no role=tablist without the roving-tabindex/arrow-key contract — honest buttons
+- do not use <a href> for in-page panel switches (wrong affordance)
+- active underline must stay square — reset border-radius (base button is radius-sm)
+- panel reveal is scoped to THIS root so multiple tab sets coexist
+
+### Keyboard / AT
+
+- Tab reaches each tab button; activation is Enter/Space (button default)
+- lazy panels load on first reveal via intersect once
+
+### Related parts
+
+- `button` — agents/button.md
+
+## DOM contract
+
+What emitted markup must satisfy (CI: `tests/test_contracts.py`). Do not invent attrs outside the tables. Python modules under `contracts/` are **package-internal dual-locks** (`from contracts._kit import …`) — not FastAPI business handlers. App servers implement **Server exchange** endpoints; this section constrains the HTML those endpoints return.
+
+### `contracts/tabs.py`
+
+- **Required root:** `[data-dz-tabs]` (part `tabs`)
+
+| Node | Attr | Constraint |
+|---|---|---|
+| `[data-dz-tabs]` | `—` | — |
+| `[data-dz-tab-target]` | `data-dz-tab-target` | present (any value) |
+
+#### Module source
+
+Monorepo dual-lock only — import `contracts._kit` from the HM package. Do not paste into app route modules.
+
+```python
+"""HYPERPART: tabs — tablist root + panel targets.
+
+Leftover-honest catalog (cycle 2185): valid ``?tab=`` rides.
+Leftover junk (``ghost``, ``zzz``) must not invent the first
+declared tab when a later sibling is rest.
+"""
+
+from contracts._kit import DomContract, Node, Present
+
+DOM_CONTRACT = DomContract(
+    part="tabs",
+    root="[data-dz-tabs]",
+    nodes=(
+        Node("[data-dz-tabs]", attrs={}),
+        Node("[data-dz-tab-target]", attrs={"data-dz-tab-target": Present()}),
+    ),
+)
+
+__all__ = ["DOM_CONTRACT"]
+```
+
+## Notes
+
+Taxonomy: tab (__tab button), tab list (__list), panel (__panel). Stem selection-strip-honest: buttons because this is in-page state, not navigation; no role=tablist without roving-tabindex/arrows. Active indicator is a square bottom border (force border-radius: 0 — base button radius would curve the underline). dz-tabs.js + lazy intersect once panels.
+
+## Source files
+
+- `site/registry.py` (partial + exchanges + guidance)
+- `contracts/tabs.py`
+- `controllers/dz-tabs.js`

@@ -1,0 +1,143 @@
+/* HYPERPART: tree */
+/* Nested <details>/<summary> hierarchy. Disclosure chrome is CSS —
+ * not a chevron SVG stuffed into the summary as content. Branches
+ * (:has(> .dz-tree-children)) get a rotating ::before affordance;
+ * leaves are .dz-tree-leaf (or a node with no children) and never
+ * advertise expand. */
+
+/* ─────────────────────────── tree region ──────────────────────── */
+
+.dz-tree-node {
+  background: color-mix(in oklch, var(--colour-bg) 70%, transparent);
+  border-radius: var(--radius-sm);
+  margin-block-end: var(--space-xs);
+}
+
+.dz-tree-summary {
+  --tree-chevron-size: 0.75rem;
+  font-size: var(--text-sm);
+  padding-inline: var(--space-md);
+  padding-block: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+/* Kill the UA disclosure marker — we own the affordance as ::before. */
+.dz-tree-summary::-webkit-details-marker {
+  display: none;
+}
+
+.dz-tree-summary::marker {
+  content: "";
+}
+
+.dz-tree-summary:hover {
+  background: var(--colour-bg);
+}
+
+/* Chevron slot: always present on branch summaries so labels align;
+ * the glyph itself is only drawn when this summary is a branch. */
+.dz-tree-summary::before {
+  content: "";
+  flex-shrink: 0;
+  width: var(--tree-chevron-size);
+  height: var(--tree-chevron-size);
+  /* empty slot for non-branch / legacy leaf-as-details */
+}
+
+/* Branch only — rotating chevron is style, not content. */
+.dz-tree-node:has(> .dz-tree-children) > .dz-tree-summary::before {
+  background-color: var(--colour-text-muted);
+  /* chevron-right as mask so colour tracks the token */
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 5l7 7-7 7'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 5l7 7-7 7'/></svg>");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.dz-tree-node[open]:has(> .dz-tree-children) > .dz-tree-summary::before {
+  transform: rotate(90deg);
+}
+
+/* Legacy SVG chevron in content (older emitters) — hide; CSS owns it. */
+.dz-tree-chevron {
+  display: none;
+}
+
+.dz-tree-label {
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.dz-tree-count {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 0.375rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--colour-text-muted);
+  background: var(--colour-bg);
+}
+
+.dz-tree-children {
+  padding-inline-start: var(--space-xl);
+  padding-inline-end: var(--space-sm);
+  padding-block-end: var(--space-xs);
+}
+
+/* Leaf — content only, no disclosure chrome. Indent matches branch
+ * summary (padding + chevron slot + gap) so labels line up. */
+.dz-tree-leaf {
+  --tree-chevron-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-inline: var(--space-md);
+  padding-block: 0.375rem;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  margin-block-end: var(--space-xs);
+  min-width: 0;
+}
+
+/* Spacer equal to the branch chevron slot so leaf labels align. */
+.dz-tree-leaf::before {
+  content: "";
+  flex-shrink: 0;
+  width: var(--tree-chevron-size);
+  height: var(--tree-chevron-size);
+}
+
+.dz-tree-leaf .dz-tree-label {
+  font-weight: var(--weight-medium);
+  color: var(--colour-text);
+}
+
+/* Flat list fallback (non-hierarchical region content). */
+.dz-tree-flat-item {
+  padding-inline: var(--space-sm);
+  padding-block: 0.375rem;
+  font-size: var(--text-sm);
+  color: var(--colour-text);
+  border-block-end: 1px solid var(--colour-border);
+}
+
+.dz-tree-flat-item:last-child {
+  border-block-end: 0;
+}
